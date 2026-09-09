@@ -3382,7 +3382,11 @@ function ComposerImpl({
     <form
       onSubmit={handleSubmit}
       className={cn(
-        "chat-composer-form relative px-4 md:px-6",
+        // A phone composer is a primary action surface. Keep it inside the
+        // available column even when an agent exposes Plan, Goal, and model
+        // controls at once; the 8px small-screen inset buys the Send action
+        // room on 320px-class devices without changing the desktop rhythm.
+        "chat-composer-form relative min-w-0 px-2 min-[375px]:px-4 md:px-6",
         isTerminalFirst ? "pb-1.5" : "pb-3",
       )}
     >
@@ -3670,7 +3674,7 @@ function ComposerImpl({
             {commandError}
           </div>
         )}
-        <div className="flex items-center justify-between gap-2 px-2 pb-2">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1 px-1 pb-2 min-[375px]:px-2">
           {/* Attach + mic — left side of the action row */}
           <div className="flex shrink-0 items-center gap-0.5">
             <Button
@@ -3714,7 +3718,7 @@ function ComposerImpl({
               Smart Routing lives inside the gear modal — folded into the Model
               dropdown for Claude, a standalone Switch for other routable
               agents. */}
-          <div className="flex min-w-0 items-center gap-0.5">
+          <div className="ml-auto flex min-w-0 items-center gap-0.5">
             {showCodexPlanMode && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -3774,7 +3778,11 @@ function ComposerImpl({
                 backendLabel="Codex"
               />
             )}
-            <div className="flex min-h-9 min-w-0 items-center rounded-lg transition-colors empty:hidden md:min-h-8 has-[button:not([aria-disabled=true])]:hover:bg-muted dark:has-[button:not([aria-disabled=true])]:hover:bg-muted/50 [&>button]:bg-transparent!">
+            {/* At phone width the model is still reachable through the gear,
+                but its read-only text is lower priority than a visible Send
+                action. Hiding that one label avoids horizontal overflow while
+                retaining Plan, Goal, configuration, and Send as tap targets. */}
+            <div className="flex min-h-9 min-w-0 items-center rounded-lg transition-colors empty:hidden max-[479px]:hidden md:min-h-8 has-[button:not([aria-disabled=true])]:hover:bg-muted dark:has-[button:not([aria-disabled=true])]:hover:bg-muted/50 [&>button]:bg-transparent!">
               <ComposerModelSource
                 modelPickerKind={modelPickerKind}
                 codexModelOptions={codexModelOptions}
