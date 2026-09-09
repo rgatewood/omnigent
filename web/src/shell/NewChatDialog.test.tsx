@@ -1295,6 +1295,35 @@ describe("NewChatLandingScreen", () => {
     expect(submit.disabled).toBe(false);
   });
 
+  it("hydrates a restored default agent's workspace hint so the first prompt can submit", async () => {
+    // No remembered workspace and no filesystem home response: the selected
+    // agent's own hint is the only valid launcher workspace. This is the
+    // refresh/default-selection path, not an explicit picker click.
+    localStorage.removeItem(RECENT_KEY);
+    mockAgents([
+      {
+        id: "lunaos-program-manager",
+        name: "mitsubishi-power-aor-program-manager",
+        display_name: "Mitsubishi Power AOR Program Manager",
+        description: null,
+        harness: "codex",
+        skills: [],
+        workspace_hint: "C:\\Users\\rsgat\\AppData\\Local\\LunaOS\\state\\agents\\mitsubishi-power-aor-program-manager",
+      },
+    ]);
+    renderLanding();
+
+    await waitFor(() =>
+      expect(screen.getByTestId("new-chat-landing-workspace-chip").textContent).toContain(
+        "mitsubishi-power-aor-program-manager",
+      ),
+    );
+    fireEvent.change(screen.getByTestId("new-chat-landing-input"), {
+      target: { value: "prepare the program status" },
+    });
+    expect((screen.getByTestId("new-chat-landing-submit") as HTMLButtonElement).disabled).toBe(false);
+  });
+
   it("keeps the disabled reason tooltip on the new-chat submit button", async () => {
     renderLanding();
     await waitFor(() =>

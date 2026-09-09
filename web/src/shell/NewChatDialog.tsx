@@ -3103,6 +3103,22 @@ export function NewChatLandingScreen() {
         : agentList.find((a) => a.id === effectiveAgentId),
     [agentList, effectiveAgentId, pendingAgent],
   );
+  // A registered agent may be restored as the landing screen's default (for
+  // example after a page refresh) instead of arriving through
+  // `handleSelectAgent`. In that path its workspace hint was never applied,
+  // leaving the otherwise-ready composer disabled with no server request to
+  // explain why. Seed the hint once per resolved agent, after project prefill
+  // has settled, and never overwrite an existing workspace or a user clearing
+  // the field.
+  const seededAgentWorkspaceHintRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!prefillSettled || selectedAgent == null || selectedAgent.workspace_hint == null) return;
+    if (seededAgentWorkspaceHintRef.current === selectedAgent.id) return;
+    seededAgentWorkspaceHintRef.current = selectedAgent.id;
+    if (workspace === "" && !workspaceFromConfigRef.current) {
+      setWorkspace(selectedAgent.workspace_hint);
+    }
+  }, [prefillSettled, selectedAgent, workspace]);
   const selectedNativeHarness = nativeCodingAgentForAvailableAgent(selectedAgent)?.harness ?? null;
   const supportsPermissionMode = nativeAgentHasCapability(selectedAgent, "permissionMode");
   const supportsApprovalMode = nativeAgentHasCapability(selectedAgent, "approvalMode");
