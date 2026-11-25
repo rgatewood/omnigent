@@ -3,8 +3,12 @@ import { readPanelSizePreference, writePanelSizePreference } from "@/lib/panelSi
 
 const MIN_WIDTH_PX = 320;
 const MAX_WIDTH_RATIO = 0.8; // 80% of viewport
-/** Tailwind `md` breakpoint — must track the value in tailwind.config. */
-const MD_BREAKPOINT = 768;
+/**
+ * LunaOS Control's desktop layout breakpoint. Below this width, workspace
+ * views are full-screen drawers and the conversation remains full width.
+ * Keep this aligned with the structural `lg:` classes in the shell.
+ */
+const DESKTOP_BREAKPOINT = 1024;
 
 /** Clamp a width value to the allowed range for the current viewport. */
 function clampWidth(w: number, minPx = MIN_WIDTH_PX): number {
@@ -105,11 +109,11 @@ export function useResizablePanel(open: boolean, defaultWidthVw = 50, minWidthPx
 
   // Track whether we're on desktop — only apply inline width there.
   const [isDesktop, setIsDesktop] = useState(
-    () => typeof window !== "undefined" && window.innerWidth >= MD_BREAKPOINT,
+    () => typeof window !== "undefined" && window.innerWidth >= DESKTOP_BREAKPOINT,
   );
 
   useEffect(() => {
-    const mql = window.matchMedia(`(min-width: ${MD_BREAKPOINT}px)`);
+    const mql = window.matchMedia(`(min-width: ${DESKTOP_BREAKPOINT}px)`);
     const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
     mql.addEventListener("change", handler);
     return () => mql.removeEventListener("change", handler);

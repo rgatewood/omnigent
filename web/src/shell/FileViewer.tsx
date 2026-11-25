@@ -1471,7 +1471,7 @@ function FileViewerBody({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 flex flex-col md:flex-row overflow-hidden">
+      <div className="min-h-0 flex-1 flex flex-col lg:flex-row overflow-hidden">
         <div
           ref={contentAreaRef}
           onScroll={handleContentScroll}
@@ -1679,8 +1679,8 @@ function FileViewerBody({
         "fixed inset-0 z-50 shadow-lg",
         open ? "translate-x-0" : "translate-x-full",
         // Desktop: static flex sibling; inline width from resize hook.
-        "md:relative md:inset-auto md:z-auto md:shadow-none md:translate-x-0 md:shrink-0",
-        open ? "md:border-border md:border-l" : "md:w-0 md:border-l-0",
+        "lg:relative lg:inset-auto lg:z-auto lg:shadow-none lg:translate-x-0 lg:shrink-0",
+        open ? "lg:border-border lg:border-l" : "lg:w-0 lg:border-l-0",
       )}
       aria-hidden={!open}
       data-collapsed={!open || undefined}

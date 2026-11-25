@@ -976,6 +976,32 @@ aside[aria-label="Workspace"][data-maximized] {
 /* Mobile-specific sidebar geometry. The root remains at the global 16px so
  * rem-based typography and controls keep the same scale across viewports. */
 @media (width < 48rem) {
+  /* Safari zooms the page when a focused text control is below 16px. The
+   * native iOS shell already applies this floor, but the same LunaOS Control
+   * bundle is also used directly in mobile Safari over Tailscale. Keep the
+   * composer at the platform minimum there without changing the surrounding
+   * LunaOS typography or disabling user zoom. */
+  .chat-composer-form textarea,
+  [data-testid="new-chat-landing-input"] {
+    font-size: 16px;
+  }
+
+  /* The primary action must remain in the row at phone widths. Lower-priority
+   * labels are allowed to truncate or disappear, while touch targets and the
+   * send action keep their measured width. */
+  .mobile-composer-actions {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .mobile-composer-actions > :last-child {
+    min-width: 0;
+  }
+
+  .mobile-composer-actions [data-testid="composer-model-effort-label"] {
+    display: none;
+  }
+
   /* Mobile keeps its own touch-friendly base (14px at the default 13px
    * preference) but scales it off the Appearance value, so the setting
    * applies on phones instead of being a dead store. The 14/13 factor maps

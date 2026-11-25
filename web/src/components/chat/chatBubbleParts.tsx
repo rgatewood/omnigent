@@ -602,10 +602,10 @@ function UserBubble({ bubble }: { bubble: Extract<Bubble, { kind: "user" }> }) {
       data-user-message-id={bubble.itemId}
       className="max-w-[640px]"
     >
-      <div className="ml-auto flex w-fit max-w-full flex-col items-end">
+      <div className="ml-auto flex w-fit min-w-0 max-w-full flex-col items-end overflow-hidden">
         {/* w-fit + ml-auto shrink-wrap the row so the author avatar sits
             immediately left of the right-aligned bubble. */}
-        <div className="flex w-fit max-w-full items-center gap-1.5">
+        <div className="flex w-fit min-w-0 max-w-full items-center gap-1.5 overflow-hidden">
           {showAuthorBadge && author && (
             <Tooltip>
               <TooltipTrigger asChild>

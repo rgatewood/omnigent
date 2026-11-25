@@ -1,11 +1,12 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { readSessionWorkspaceState } from "@/lib/sessionWorkspaceState";
+import { readPanelSizePreference } from "@/lib/panelSizePreferences";
+import { writeSessionWorkspaceState } from "@/lib/sessionWorkspaceState";
 import { resetWidthStoreForTesting, useResizableInlinePanel } from "./useResizableInlinePanel";
 
 // useResizableInlinePanel keeps its width in a module-level store shared across
-// all callers, re-seeded per conversation. resetWidthStoreForTesting clears it
-// between tests so cases are fully independent. A 2000px viewport gives a
+// all callers and persists one user-wide preference. resetWidthStoreForTesting
+// clears it between tests so cases are fully independent. A 2000px viewport gives a
 // 1512px clamp ceiling (2000 - 480 chat minimum - 8 gap); the default width
 // there is 600 (0.36 * 2000 = 720, clamped to the [420, 600] band).
 
@@ -39,14 +40,14 @@ afterEach(() => {
 });
 
 describe("useResizableInlinePanel persistence", () => {
-  it("persists explicit keyboard resize per session and restores it after store reset", () => {
+  it("persists an explicit keyboard resize once for the user and restores it after store reset", () => {
     const { result, unmount } = renderHook(() => useResizableInlinePanel(SESSION));
 
     // Default 600 + one ArrowLeft step (20px) = 620, persisted under the
-    // session key.
+    // user-wide layout preference.
     const afterNudge = nudgeWiderOnce(result);
     expect(afterNudge).toBe(620);
-    expect(readSessionWorkspaceState(SESSION).widthPx).toBe(620);
+    expect(readPanelSizePreference("inlinePanelWidthPx")).toBe(620);
 
     unmount();
     resetWidthStoreForTesting();
@@ -57,19 +58,29 @@ describe("useResizableInlinePanel persistence", () => {
     restored.unmount();
   });
 
-  it("scopes the saved width to its root-tree key: a different tree uses the default", () => {
+  it("keeps the saved width when switching to a different agent tree", () => {
     const rootTreeKey = "conv_root";
     const first = renderHook(() => useResizableInlinePanel(rootTreeKey));
     expect(nudgeWiderOnce(first.result)).toBe(620);
-    expect(readSessionWorkspaceState(rootTreeKey).widthPx).toBe(620);
+    expect(readPanelSizePreference("inlinePanelWidthPx")).toBe(620);
     first.unmount();
 
-    // A second root tree has no saved width, so it falls back to the
-    // viewport-derived default (600) rather than inheriting the first's 620.
+    // A second root tree inherits the workstation layout instead of forcing a
+    // resize for every chat window.
     const second = renderHook(() => useResizableInlinePanel("conv_other_root"));
-    expect(second.result.current.panelWidth).toBe(600);
-    expect(readSessionWorkspaceState("conv_other_root").widthPx).toBeUndefined();
+    expect(second.result.current.panelWidth).toBe(620);
     second.unmount();
+  });
+
+  it("ignores legacy per-conversation rail widths", () => {
+    // Older releases wrote this field for every chat. Reading it again would
+    // resurrect the very resize-per-chat behavior the global preference fixes.
+    writeSessionWorkspaceState(SESSION, { widthPx: 912 });
+
+    const { result, unmount } = renderHook(() => useResizableInlinePanel(SESSION));
+    expect(result.current.panelWidth).toBe(600);
+    expect(readPanelSizePreference("inlinePanelWidthPx")).toBeNull();
+    unmount();
   });
 
   it("re-derives from the preference on resize: clamps down on shrink, springs back on widen", () => {
@@ -77,7 +88,7 @@ describe("useResizableInlinePanel persistence", () => {
 
     // Establish a persisted preference of 620 (default 600 + one ArrowLeft step).
     expect(nudgeWiderOnce(result)).toBe(620);
-    expect(readSessionWorkspaceState(SESSION).widthPx).toBe(620);
+    expect(readPanelSizePreference("inlinePanelWidthPx")).toBe(620);
 
     // Shrinking the viewport clamps the live width to the chat-preserving
     // ceiling (700 - 480 chat - 8 gap = 212). The chat's 480 floor wins over
@@ -86,7 +97,7 @@ describe("useResizableInlinePanel persistence", () => {
     setInnerWidth(700);
     act(() => window.dispatchEvent(new Event("resize")));
     expect(result.current.panelWidth).toBe(212);
-    expect(readSessionWorkspaceState(SESSION).widthPx).toBe(620);
+    expect(readPanelSizePreference("inlinePanelWidthPx")).toBe(620);
 
     // Widening again re-derives from the preference, restoring 620 in-session.
     setInnerWidth(2000);
@@ -114,14 +125,14 @@ describe("useResizableInlinePanel reserved width (sidebar)", () => {
     act(() => window.dispatchEvent(new MouseEvent("mousemove", { clientX: 100 })));
     act(() => window.dispatchEvent(new MouseEvent("mouseup")));
     expect(collapsed.result.current.panelWidth).toBe(912);
-    expect(readSessionWorkspaceState(SESSION).widthPx).toBe(912);
+    expect(readPanelSizePreference("inlinePanelWidthPx")).toBe(912);
     collapsed.unmount();
 
     // Sidebar open (320px): the ceiling drops to 1400 - 320 - 480 - 8 = 592, so
     // the rendered width is squeezed but the saved preference is untouched.
     const open = renderHook(() => useResizableInlinePanel(SESSION, undefined, 320));
     expect(open.result.current.panelWidth).toBe(592);
-    expect(readSessionWorkspaceState(SESSION).widthPx).toBe(912);
+    expect(readPanelSizePreference("inlinePanelWidthPx")).toBe(912);
     open.unmount();
 
     // Collapsing restores the full preferred width.
@@ -202,7 +213,7 @@ describe("useResizableInlinePanel drag overlay", () => {
       window.dispatchEvent(new MouseEvent("mouseup"));
     });
     expect(result.current.panelWidth).toBe(initialWidth);
-    expect(readSessionWorkspaceState(sessionId).widthPx).toBeUndefined();
+    expect(readPanelSizePreference("inlinePanelWidthPx")).toBeNull();
     unmount();
   });
 
@@ -218,7 +229,7 @@ describe("useResizableInlinePanel drag overlay", () => {
     );
     act(() => window.dispatchEvent(new MouseEvent("mousemove", { clientX: 1200 })));
     await waitFor(() => expect(result.current.panelWidth).toBe(800));
-    expect(readSessionWorkspaceState(sessionId).widthPx).toBeUndefined();
+    expect(readPanelSizePreference("inlinePanelWidthPx")).toBeNull();
 
     rerender({ persistEnabled: false });
     act(() => {
@@ -226,7 +237,7 @@ describe("useResizableInlinePanel drag overlay", () => {
       window.dispatchEvent(new MouseEvent("mouseup"));
     });
     expect(result.current.panelWidth).toBe(800);
-    expect(readSessionWorkspaceState(sessionId).widthPx).toBeUndefined();
+    expect(readPanelSizePreference("inlinePanelWidthPx")).toBeNull();
     unmount();
   });
 

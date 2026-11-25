@@ -55,14 +55,14 @@ describe("useResizablePanel persistence", () => {
     });
     expect(readPanelSizePreference("pushPanelWidthPx")).toBe(980);
 
-    setInnerWidth(1000);
+    setInnerWidth(1100);
     act(() => {
       window.dispatchEvent(new Event("resize"));
     });
 
     // The live width clamps to the new 80vw ceiling, but the saved user
     // preference remains 980 so a later wider viewport can restore it.
-    expect(result.current.panelWidth).toBe(800);
+    expect(result.current.panelWidth).toBe(880);
     expect(readPanelSizePreference("pushPanelWidthPx")).toBe(980);
 
     // Widening the viewport again re-derives from the persisted preference,
@@ -118,5 +118,13 @@ describe("useResizablePanel persistence", () => {
 
     first.unmount();
     second.unmount();
+  });
+
+  it("uses a full-screen drawer below the LunaOS Control desktop boundary", () => {
+    setInnerWidth(1023);
+    const { result } = renderHook(() => useResizablePanel(true));
+
+    expect(result.current.isDesktop).toBe(false);
+    expect(result.current.panelWidth).toBeUndefined();
   });
 });

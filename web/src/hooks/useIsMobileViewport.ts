@@ -1,16 +1,16 @@
 // Reactive "is this a mobile-width viewport?" hook.
 //
-// The shell's responsive layout pivots on Tailwind's `md` breakpoint
-// (`min-width: 768px`), used both as CSS classes (`md:` / `max-md:`) and as
+// The shell's responsive layout pivots on the LunaOS Control desktop
+// breakpoint (`min-width: 1024px`), used both as CSS classes (`lg:` / `max-lg:`) and as
 // the JS threshold in AppShell's `initialSidebarOpen`. This hook exposes the
-// `max-md` side of that line to component logic that can't be expressed in
+// `max-lg` side of that line to component logic that can't be expressed in
 // CSS alone (e.g. swapping a hover flyout for an in-place page on touch).
 
 import { useSyncExternalStore } from "react";
 
-// Mirror Tailwind's `max-md` variant exactly so this hook stays in lockstep
-// with the `max-md:` / `md:` classes already used across the shell.
-const MOBILE_QUERY = "(max-width: 767.98px)";
+// Mirror Tailwind's `max-lg` variant exactly so this hook stays in lockstep
+// with the `max-lg:` / `lg:` classes used by the shell's structural layout.
+const MOBILE_QUERY = "(max-width: 1023.98px)";
 
 function subscribe(callback: () => void): () => void {
   if (typeof window === "undefined" || !window.matchMedia) return () => {};
@@ -25,8 +25,8 @@ function getSnapshot(): boolean {
 }
 
 /**
- * True when the viewport is narrower than Tailwind's `md` breakpoint (768px)
- * — i.e. the "mobile" layout the shell's `max-md:` classes target. Reactive:
+ * True when the viewport is narrower than LunaOS Control's `lg` breakpoint
+ * (1024px) — i.e. the chat-first layout the shell's `max-lg:` classes target. Reactive:
  * components re-render when the viewport crosses the breakpoint. SSR-safe
  * (returns `false` on the server, matching `initialSidebarOpen`).
  */

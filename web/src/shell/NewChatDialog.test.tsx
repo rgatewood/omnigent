@@ -233,7 +233,7 @@ function conv(overrides: Partial<Conversation>): Conversation {
 /** A real HostFilesystemEntry for the home-derivation tests. */
 function fsEntry(path: string): HostFilesystemEntry {
   return {
-    name: path.split("/").filter(Boolean).pop() ?? "",
+    name: path.split(/[\\/]/).filter(Boolean).pop() ?? "",
     path,
     type: "directory",
     bytes: null,
@@ -537,6 +537,16 @@ describe("deriveHomeDir", () => {
     // A home directly under root (e.g. "/root") yields "/" — not "" — so the
     // seeded value is still a valid absolute path.
     expect(deriveHomeDir([fsEntry("/etc")])).toBe("/");
+  });
+
+  it("derives a Windows host home from backslash-separated entries", () => {
+    expect(
+      deriveHomeDir([fsEntry("C:\\Users\\rsgat\\Desktop"), fsEntry("C:\\Users\\rsgat\\Documents")]),
+    ).toBe("C:\\Users\\rsgat");
+  });
+
+  it("preserves a Windows drive root", () => {
+    expect(deriveHomeDir([fsEntry("C:\\Users")])).toBe("C:\\");
   });
 
   it("returns null for an empty listing", () => {

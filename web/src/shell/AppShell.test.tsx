@@ -1529,7 +1529,7 @@ describe("Right-rail terminals card", () => {
     expect(screen.queryByTestId("terminals-panel")).toBeNull();
 
     // The context-backed toggle still flips view state; main stays
-    // mounted (no md:hidden) so it can host the inline terminal.
+    // mounted (no lg:hidden) so it can host the inline terminal.
     fireEvent.click(screen.getByRole("button", { name: "Terminal" }));
     expect(screen.getByTestId("view-probe")).toHaveAttribute("data-view", "terminal");
     expect(screen.queryByTestId("terminals-panel")).toBeNull();
@@ -1604,10 +1604,10 @@ describe("Chat-mode terminal panel layout", () => {
     // The shell tab's xterm is mounted in the rail...
     expect(screen.getByTestId("terminal-view-stub")).toHaveTextContent("terminal_main");
     // ...while the push panel stays closed and chat stays visible. The
-    // md:hidden gate lives on the chat+workspace group (main's parent).
+    // lg:hidden gate lives on the chat+workspace group (main's parent).
     const chatGroup = () => screen.getByRole("main").parentElement as HTMLElement;
     expect(screen.getByTestId("terminals-panel")).toHaveAttribute("data-state", "closed");
-    expect(chatGroup().className.split(" ")).not.toContain("md:hidden");
+    expect(chatGroup().className.split(" ")).not.toContain("lg:hidden");
   });
 
   it("confirms before closing a shell tab, then kills the terminal", () => {
@@ -1770,23 +1770,23 @@ describe("Workspace rail maximize", () => {
     // collapses it. Docked baseline: fixed-width flex child, no cover classes.
     fireEvent.click(screen.getByRole("button", { name: /open sidebar/i }));
     expect(screen.getByTestId("sidebar")).toHaveAttribute("data-open", "true");
-    expect(rail().className).toContain("md:shrink-0");
-    expect(rail().className).not.toContain("md:absolute");
+    expect(rail().className).toContain("lg:shrink-0");
+    expect(rail().className).not.toContain("lg:absolute");
 
     // Maximize → the rail breaks out to cover the content region, and the left
     // sidebar collapses so the maximized rail owns the full content width.
     fireEvent.click(screen.getByRole("button", { name: "Full screen" }));
-    expect(rail().className).toContain("md:absolute");
-    expect(rail().className).toContain("md:inset-0");
+    expect(rail().className).toContain("lg:absolute");
+    expect(rail().className).toContain("lg:inset-0");
     // Still keeps the docked flush/bordered styling — only the width changes.
-    expect(rail().className).toContain("md:border-l");
+    expect(rail().className).toContain("lg:border-l");
     expect(screen.getByTestId("sidebar")).toHaveAttribute("data-open", "false");
 
     // Minimize → back to the docked flex child, and the sidebar is restored to
     // its pre-maximize state (it was open, so it reopens).
     fireEvent.click(screen.getByRole("button", { name: "Exit full screen" }));
-    expect(rail().className).toContain("md:shrink-0");
-    expect(rail().className).not.toContain("md:absolute");
+    expect(rail().className).toContain("lg:shrink-0");
+    expect(rail().className).not.toContain("lg:absolute");
     expect(screen.getByTestId("sidebar")).toHaveAttribute("data-open", "true");
   });
 
@@ -1801,6 +1801,9 @@ describe("Workspace rail maximize", () => {
 
     const shell = document.querySelector(".app-shell");
     expect(shell).not.toBeNull();
+    expect(shell?.className).toContain("w-full");
+    expect(shell?.className).toContain("max-w-full");
+    expect(shell?.className).toContain("overflow-hidden");
     // Collapsed going in (jsdom default): the attribute is absent, so
     // `:not([data-sidebar-open])` matches and the clearance still applies.
     expect(screen.getByTestId("sidebar")).toHaveAttribute("data-open", "false");
@@ -1977,7 +1980,7 @@ describe("Workspace rail maximize", () => {
     expect(screen.getByTestId("sidebar")).toHaveAttribute("data-open", "true");
     // Back to docked (a fresh session starts docked).
     expect(screen.getByRole("complementary", { name: "Workspace" }).className).not.toContain(
-      "md:absolute",
+      "lg:absolute",
     );
   });
 });
@@ -2913,7 +2916,7 @@ describe("AppShell URL sync — file param", () => {
     renderShell("/c/conv_abc?file=README.md");
 
     // Viewer must be open and pointing at the file from the URL.
-    // file-viewer = mobile push-panel (md:hidden); file-viewer-inline = desktop inline.
+    // file-viewer = mobile push-panel (lg:hidden); file-viewer-inline = desktop inline.
     // Failure: the conversationId effect did not read searchParams.get("file")
     // and call setSelectedFilePath with it.
     const pushPanel = screen.getByTestId("file-viewer");
@@ -3238,7 +3241,7 @@ describe("Right-rail tab switching — file viewer close", () => {
 describe("Mobile session menu", () => {
   // The right-rail tabs have no room on a phone, so they're reached from the
   // header's single kebab, which opens each tab's content as a full-screen
-  // drawer alongside the session actions. jsdom doesn't apply the `md:hidden`
+  // drawer alongside the session actions. jsdom doesn't apply the `lg:hidden`
   // CSS, so the trigger and its items are present regardless of viewport.
 
   /** Open the session-actions dropdown and return its trigger. */
@@ -3398,7 +3401,7 @@ describe("Mobile session menu", () => {
 
     // Drawer starts closed and its content unmounted. Scope to the drawer:
     // the desktop rail renders its own default panel (Files), and jsdom
-    // doesn't apply the rail's md:hidden.
+    // doesn't apply the rail's lg:hidden.
     const drawer = screen.getByTestId("subagents-panel-drawer");
     expect(drawer).toHaveAttribute("data-state", "closed");
     expect(within(drawer).queryByTestId("subagents-panel")).toBeNull();

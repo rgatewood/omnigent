@@ -90,8 +90,8 @@ export function FilesPanelDrawer({
         "flex flex-col overflow-hidden bg-card transition-[translate,border-color,border-width] duration-150 ease-out",
         "fixed inset-0 z-50 shadow-lg",
         open ? "translate-x-0" : "translate-x-full",
-        "md:relative md:inset-auto md:z-auto md:shadow-none md:translate-x-0 md:shrink-0",
-        open ? "md:border-border md:border-l" : "md:w-0 md:border-l-0",
+        "lg:relative lg:inset-auto lg:z-auto lg:shadow-none lg:translate-x-0 lg:shrink-0",
+        open ? "lg:border-border lg:border-l" : "lg:w-0 lg:border-l-0",
       )}
       aria-hidden={!open}
       data-collapsed={!open || undefined}

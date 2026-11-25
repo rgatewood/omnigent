@@ -392,7 +392,7 @@ export function ChatHeader({
         // Scrolled chat text can't render through the controls because the
         // conversation viewport fades its top edge instead (chat-scroll-fade
         // in index.css, applied in ChatPage).
-        "chat-header absolute inset-x-0 top-0 z-30 flex h-14 md:h-12 items-center justify-between px-2 md:px-4 py-3 md:right-[var(--workspace-panel-offset,0px)]",
+        "chat-header absolute inset-x-0 top-0 z-30 flex h-14 lg:h-12 items-center justify-between px-2 lg:px-4 py-3 lg:right-[var(--workspace-panel-offset,0px)]",
       )}
     >
       {/* Left slot: sidebar toggle (when sidebar is closed) and a
@@ -407,7 +407,7 @@ export function ChatHeader({
           in the title-bar strip). Inert outside the shell (index.css). */}
       <div
         className={cn(
-          "flex min-w-0 items-center gap-1 md:gap-6",
+          "flex min-w-0 items-center gap-1 lg:gap-6",
           !sidebarOpen && "traffic-light-clearance",
         )}
       >
@@ -418,8 +418,8 @@ export function ChatHeader({
                 type="button"
                 variant="ghost"
                 // icon on <md (size-10, comfortable tap target), icon-xs on
-                // desktop (md:size-6). size="icon" gives the base size-10; the
-                // md:size-6 override replaces the variant's md:size-8.
+                // desktop (lg:size-6). size="icon" gives the base size-10; the
+                // lg:size-6 override replaces the variant's lg:size-8.
                 size="icon"
                 aria-label="Open sidebar"
                 componentId="chat.header.open_sidebar"
@@ -433,14 +433,14 @@ export function ChatHeader({
                 // copy of it. Kept everywhere else, where it is the ONLY way to
                 // reopen a collapsed sidebar.
                 className={cn(
-                  "chat-header-sidebar-toggle text-muted-foreground hover:text-foreground max-md:size-11 md:size-6",
+                  "chat-header-sidebar-toggle text-muted-foreground hover:text-foreground max-lg:size-11 lg:size-6",
                   MOBILE_GLASS_PILL,
                 )}
                 onPointerEnter={onPeekSidebar}
                 onPointerDown={cancelPeek}
                 onPointerLeave={cancelPeek}
               >
-                <PanelLeftIcon className="size-4 max-md:size-5" />
+                <PanelLeftIcon className="size-4 max-lg:size-5" />
               </Button>
             </TooltipTrigger>
             {/* Bottom placement keeps the tooltip clear of the macOS
@@ -475,7 +475,7 @@ export function ChatHeader({
 
       <div
         className={cn(
-          "flex items-center gap-2 max-md:gap-0 max-md:empty:hidden",
+          "flex items-center gap-2 max-lg:gap-0 max-lg:empty:hidden",
           MOBILE_GLASS_PILL,
         )}
       >
@@ -510,9 +510,9 @@ export function ChatHeader({
                 size="icon"
                 aria-label="Session actions"
                 data-testid="session-actions-menu"
-                className="text-muted-foreground hover:text-foreground md:hidden max-md:size-11 max-md:rounded-full"
+                className="text-muted-foreground hover:text-foreground lg:hidden max-lg:size-11 max-lg:rounded-full"
               >
-                <EllipsisVerticalIcon className="size-4 max-md:size-5" />
+                <EllipsisVerticalIcon className="size-4 max-lg:size-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className={cn("min-w-44", MOBILE_GLASS_SURFACE)}>
@@ -561,7 +561,7 @@ export function ChatHeader({
               <span
                 tabIndex={0}
                 aria-label={`Share session disabled: ${shareDisabledReason}`}
-                className="hidden md:inline-flex"
+                className="hidden lg:inline-flex"
               >
                 <Button
                   type="button"
@@ -589,7 +589,7 @@ export function ChatHeader({
             componentId="chat.header.share"
             // share-button-glassy (index.css) paints the pink gradient,
             // shadow, and white text in both light and dark mode.
-            className="share-button-glassy hidden h-6 gap-1 rounded-[6px] px-2 text-ui font-normal text-white md:inline-flex"
+            className="share-button-glassy hidden h-6 gap-1 rounded-[6px] px-2 text-ui font-normal text-white lg:inline-flex"
           >
             <span className="flex size-4 shrink-0 items-center justify-center">
               <UserPlusIcon />
@@ -607,7 +607,7 @@ export function ChatHeader({
                 aria-label={rightPanelOpen ? "Collapse right panel" : "Expand right panel"}
                 onClick={onToggleRightPanel}
                 componentId="chat.header.toggle_right_panel"
-                className="hidden md:inline-flex text-muted-foreground hover:text-foreground border-none"
+                className="hidden lg:inline-flex text-muted-foreground hover:text-foreground border-none"
               >
                 {rightPanelOpen ? (
                   <PanelRightCloseIcon className="size-4" />

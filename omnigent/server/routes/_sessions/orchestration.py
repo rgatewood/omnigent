@@ -11,6 +11,7 @@ import asyncio
 import contextlib
 import json
 import math
+import os
 import secrets
 import time
 from collections.abc import Callable, Iterator, Mapping, Sequence
@@ -8136,6 +8137,32 @@ async def _create_session_from_existing_agent(
         permission_store=permission_store,
         conversation_store=conversation_store,
     )
+
+    # The browser may carry a stale Claude-native selection from before this
+    # Windows host was repaired, including on a phone or another workstation
+    # with a separate localStorage. Never let that stale choice create a
+    # session that is guaranteed to fail on this host; use the canonical
+    # Windows-capable LunaOS Chief of Staff agent instead.
+    if os.name == "nt" and agent.name == "claude-native-ui":
+        fallback_agent = await asyncio.to_thread(agent_store.get_by_name, "chief-of-staff")
+        if fallback_agent is None:
+            raise OmnigentError(
+                "Claude Code's native terminal is unavailable on Windows; select a LunaOS SDK agent.",
+                code=ErrorCode.INVALID_INPUT,
+            )
+        agent = await validate_session_agent(
+            user_id=user_id,
+            agent_id=fallback_agent.id,
+            agent_store=agent_store,
+            permission_store=permission_store,
+            conversation_store=conversation_store,
+        )
+        if body.labels:
+            body.labels = {
+                key: value
+                for key, value in body.labels.items()
+                if key not in {"omnigent.ui", "omnigent.wrapper"}
+            }
 
     # Top-level Smart Routing: "auto" on a native wrapper agent means the client
     # picked Smart Routing with no bundle agent, and its ``agent_id`` is only a

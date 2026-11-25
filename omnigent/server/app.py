@@ -2473,6 +2473,27 @@ def create_app(
             headers={"X-Content-Type-Options": "nosniff"},
         )
 
+    async def browser_icon(static_name: str) -> Response:
+        """Serve configured branding for browser chrome, with the stock fallback."""
+        asset = branding_snapshot.logo_asset("favicon")
+        if asset is not None:
+            return Response(
+                content=asset.content,
+                media_type=asset.media_type,
+                headers={"X-Content-Type-Options": "nosniff", "Cache-Control": "no-cache"},
+            )
+        return FileResponse(_WEB_UI_DIST / static_name)
+
+    @app.get("/favicon.svg", include_in_schema=False)
+    async def favicon() -> Response:
+        """Return the operator favicon before the SPA has booted."""
+        return await browser_icon("favicon.svg")
+
+    @app.get("/apple-touch-icon.png", include_in_schema=False)
+    async def apple_touch_icon() -> Response:
+        """Return the operator touch icon before the SPA has booted."""
+        return await browser_icon("apple-touch-icon.png")
+
     @app.get("/v1/me", response_model=None)  # Union return type (dict | JSONResponse)
     async def me(request: Request) -> dict[str, str | bool | None] | JSONResponse:
         """Return the current user's identity.

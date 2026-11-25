@@ -137,7 +137,7 @@ describe("ChatHeader — deployed Share presentation", () => {
       "px-2",
       "text-ui",
       "share-button-glassy",
-      "md:inline-flex",
+      "lg:inline-flex",
     );
     expect(share).not.toHaveClass("h-8", "rounded-full", "px-6");
     expect(share.querySelector(".lucide-user-plus")).not.toBeNull();
@@ -172,7 +172,7 @@ describe("ChatHeader — workspace pane alignment", () => {
     const header = container.querySelector("header");
 
     expect(header).not.toBeNull();
-    expect(header).toHaveClass("inset-x-0", "md:right-[var(--workspace-panel-offset,0px)]");
+    expect(header).toHaveClass("inset-x-0", "lg:right-[var(--workspace-panel-offset,0px)]");
   });
 });
 
@@ -490,14 +490,14 @@ describe("ChatHeader — floating mobile controls", () => {
     const cluster = screen.getByRole("button", { name: "Share session" }).parentElement;
     for (const surface of [toggle, cluster]) {
       expect(surface).toHaveClass(
-        "max-md:rounded-full",
-        "max-md:bg-background/70",
-        "max-md:backdrop-blur-xl",
-        "max-md:backdrop-saturate-150",
+        "max-lg:rounded-full",
+        "max-lg:bg-background/70",
+        "max-lg:backdrop-blur-xl",
+        "max-lg:backdrop-saturate-150",
       );
     }
     // Nothing to show on the landing composer — the pill must not paint empty.
-    expect(cluster).toHaveClass("max-md:empty:hidden");
+    expect(cluster).toHaveClass("max-lg:empty:hidden");
   });
 
   it("keeps the two clusters the same size around a lone control", () => {
@@ -521,7 +521,7 @@ describe("ChatHeader — floating mobile controls", () => {
 
     const toggle = screen.getByRole("button", { name: "Open sidebar" });
     const trigger = screen.getByRole("button", { name: "Conversation actions" });
-    expect(trigger.parentElement).not.toHaveClass("max-md:px-1", "max-md:py-1");
+    expect(trigger.parentElement).not.toHaveClass("max-lg:px-1", "max-lg:py-1");
     expect(trigger).toHaveClass("size-10");
     expect(toggle).toHaveClass("size-10");
   });
@@ -535,7 +535,7 @@ describe("ChatHeader — floating mobile controls", () => {
     renderHeaderWithSession(makeTerminalFirstCtx());
 
     const cluster = screen.getByTestId("view-mode-toggle").parentElement;
-    expect(cluster).toHaveClass("max-md:has-data-[slot=view-mode-toggle]:pl-1.5");
+    expect(cluster).toHaveClass("max-lg:has-data-[slot=view-mode-toggle]:pl-1.5");
     // The guard keys off the track's own data-slot, so it has to be present.
     expect(screen.getByTestId("view-mode-toggle")).toHaveAttribute("data-slot", "view-mode-toggle");
   });
@@ -551,7 +551,7 @@ describe("ChatHeader — floating mobile controls", () => {
       hasHeaderMenu: true,
     });
 
-    expect(screen.getByTestId("session-actions-menu")).toHaveClass("max-md:rounded-full");
+    expect(screen.getByTestId("session-actions-menu")).toHaveClass("max-lg:rounded-full");
   });
 
   it("gives the fallback menu the same glass as the controls", () => {
@@ -565,8 +565,8 @@ describe("ChatHeader — floating mobile controls", () => {
 
     fireEvent.pointerDown(screen.getByTestId("session-actions-menu"), { button: 0 });
     expect(screen.getByRole("menu")).toHaveClass(
-      "max-md:bg-background/70",
-      "max-md:backdrop-blur-xl",
+      "max-lg:bg-background/70",
+      "max-lg:backdrop-blur-xl",
     );
   });
 

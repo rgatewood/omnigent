@@ -166,7 +166,7 @@ export function CommentsPanel({
     <div
       ref={containerRef}
       style={isDesktop && width != null ? { width } : undefined}
-      className="relative flex shrink-0 flex-col overflow-hidden border-border w-full h-64 border-t md:h-auto md:border-t-0 md:border-l"
+      className="relative flex shrink-0 flex-col overflow-hidden border-border w-full h-64 border-t lg:h-auto lg:border-t-0 lg:border-l"
     >
       {/* Resize handle — desktop only (mobile stacks the panel full-width below) */}
       {isDesktop && (

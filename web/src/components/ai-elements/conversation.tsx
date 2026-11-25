@@ -43,7 +43,10 @@ const ScrollLockBridge = ({ children }: { children: ReactNode }) => {
 
 export const Conversation = ({ className, children, ...props }: ConversationProps) => (
   <StickToBottom
-    className={cn("relative flex-1 overflow-y-hidden", className)}
+    // This is a flex item inside the chat surface. It must be allowed to shrink
+    // below a message's intrinsic width on a phone; otherwise a long response
+    // widens the whole conversation and the shell can only clip its right edge.
+    className={cn("relative flex min-w-0 w-full max-w-full flex-1 overflow-hidden", className)}
     initial="instant"
     resize="instant"
     role="log"
@@ -56,7 +59,13 @@ export const Conversation = ({ className, children, ...props }: ConversationProp
 export type ConversationContentProps = ComponentProps<typeof StickToBottom.Content>;
 
 export const ConversationContent = ({ className, ...props }: ConversationContentProps) => (
-  <StickToBottom.Content className={cn("flex flex-col gap-8 px-6 py-4", className)} {...props} />
+  <StickToBottom.Content
+    // Keep the message column inside the scroll viewport. Individual code,
+    // tables, and math blocks provide their own horizontal scrolling instead
+    // of making the conversation itself wider than the device.
+    className={cn("flex min-w-0 w-full max-w-full flex-col gap-8 overflow-x-hidden px-6 py-4", className)}
+    {...props}
+  />
 );
 
 export type ConversationEmptyStateProps = ComponentProps<"div"> & {

@@ -349,6 +349,33 @@ class TestCodexExecutor(unittest.TestCase):
         self.assertIn("ZEBRA-99", prompt)
         self.assertIn("Summarize our conversation.", prompt)
 
+    def test_prompt_for_new_thread_keeps_latest_image_structured(self):
+        payload = "A" * 4096
+        prompt = _prompt_for_turn(
+            [
+                {"role": "user", "content": "Earlier context."},
+                {"role": "assistant", "content": "Understood."},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": "Review this image."},
+                        {
+                            "type": "input_image",
+                            "filename": "priority.png",
+                            "image_url": f"data:image/png;base64,{payload}",
+                        },
+                    ],
+                },
+            ],
+            is_new_thread=True,
+        )
+
+        self.assertIsInstance(prompt, list)
+        assert isinstance(prompt, list)
+        self.assertIn("Earlier context.", prompt[0]["text"])
+        self.assertNotIn(payload, prompt[0]["text"])
+        self.assertEqual(prompt[-1]["image_url"], f"data:image/png;base64,{payload}")
+
     def test_prompt_for_existing_thread_uses_latest_user_message(self):
         messages = [
             {"role": "user", "content": "The secret codeword is ZEBRA-99."},
@@ -3436,6 +3463,21 @@ def test_to_codex_input_items_image_block_passes_through() -> None:
     )
 
     assert result == [{"type": "image", "url": "https://example.com/img.png"}]
+
+
+def test_to_codex_input_items_materializes_inline_image(tmp_path: Path) -> None:
+    """Inline image bytes become a localImage reference before app-server RPC."""
+    payload = base64.b64encode(b"small png payload").decode()
+    block = {
+        "type": "input_image",
+        "filename": "priority.png",
+        "image_url": f"data:image/png;base64,{payload}",
+    }
+
+    result = _to_codex_input_items([block], attachment_dir=tmp_path)
+
+    assert result == [{"type": "localImage", "path": str(tmp_path / "uploads" / "priority.png")}]
+    assert (tmp_path / "uploads" / "priority.png").read_bytes() == b"small png payload"
 
 
 def test_to_codex_input_items_input_file_data_uri_decoded_to_text() -> None:

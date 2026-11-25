@@ -8,7 +8,7 @@
 // shape: a fixed full-screen overlay that slides in from the right via
 // `translate-x`, with a header (title + close) above the content.
 //
-// `md:hidden`: the drawer is never shown on desktop — the rail owns that
+// `lg:hidden`: the drawer is never shown on desktop — the rail owns that
 // content there — so even if `open` is left true across a viewport resize it
 // can't collide with the rail.
 
@@ -25,7 +25,7 @@ interface MobilePanelDrawerProps {
   title: string;
   /**
    * Dismiss handler — fired by the header close button. (No Escape-key
-   * listener: this drawer is `md:hidden`, so it only renders on mobile
+   * listener: this drawer is `lg:hidden`, so it only renders on mobile
    * viewports, where there's no Escape key to press.)
    */
   onClose: () => void;
@@ -63,7 +63,7 @@ export function MobilePanelDrawer({
         // drawer past the status bar / home indicator (see index.css); without
         // it the header sits under the notch and Close is untappable.
         "mobile-panel-drawer flex flex-col overflow-hidden bg-card transition-[translate] duration-150 ease-out",
-        "fixed inset-0 z-50 shadow-lg md:hidden",
+        "fixed inset-0 z-50 shadow-lg lg:hidden",
         open ? "translate-x-0" : "translate-x-full",
       )}
       aria-hidden={!open}

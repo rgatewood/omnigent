@@ -160,9 +160,9 @@ export function TerminalsPanel({
         "flex flex-col overflow-hidden bg-card transition-[translate,border-color,border-width] duration-150 ease-out",
         "fixed inset-0 z-50 shadow-lg",
         open ? "translate-x-0" : "translate-x-full",
-        "md:relative md:inset-auto md:z-auto md:shadow-none md:translate-x-0",
-        fluid ? "md:flex-1" : "md:shrink-0",
-        open ? "md:border-border md:border-l" : "md:w-0 md:border-l-0",
+        "lg:relative lg:inset-auto lg:z-auto lg:shadow-none lg:translate-x-0",
+        fluid ? "lg:flex-1" : "lg:shrink-0",
+        open ? "lg:border-border lg:border-l" : "lg:w-0 lg:border-l-0",
       )}
       aria-hidden={!open}
       data-collapsed={!open || undefined}
@@ -194,13 +194,13 @@ export function TerminalsPanel({
           Desktop: flex-row — list on left, xterm on right. */}
       <div
         ref={splitRef as React.RefObject<HTMLDivElement>}
-        className="flex min-h-0 flex-1 flex-col md:flex-row overflow-hidden"
+        className="flex min-h-0 flex-1 flex-col lg:flex-row overflow-hidden"
       >
         {/* List panel */}
         <div
           className={cn(
             "relative flex shrink-0 flex-col overflow-y-auto py-1",
-            activeTerminal ? "border-b border-border md:border-b-0 md:border-r" : "flex-1",
+            activeTerminal ? "border-b border-border lg:border-b-0 lg:border-r" : "flex-1",
           )}
           // Width only meaningful on desktop (horizontal split).
           style={activeTerminal && isDesktop ? { width: listWidth } : undefined}

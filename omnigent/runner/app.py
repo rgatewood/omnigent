@@ -4047,6 +4047,10 @@ def create_runner_app(
             spec is not None
             and not is_native_harness(harness_name)
             and not _sa_name
+            # The auxiliary Omnigent REPL is tmux/PTY-backed. Windows hosts
+            # must stay chat-first; attempting this launch only produces a
+            # misleading "terminal starting" state and a 502 workspace pane.
+            and os.name != "nt"
             and resource_registry.terminal_registry is not None
         ):
             _repl_lock = _repl_terminal_ensure_locks.setdefault(session_id, asyncio.Lock())

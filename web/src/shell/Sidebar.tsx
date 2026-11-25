@@ -202,7 +202,7 @@ import { TooltipArrow } from "radix-ui/tooltip";
 // kebab take its place; on mobile those controls are gone, so the badge simply
 // holds the right edge.
 const SESSION_STATE_SLOT_CLASS =
-  "-translate-y-1/2 pointer-events-none absolute top-1/2 right-1 flex h-5 items-center transition-opacity md:group-hover:opacity-0 md:group-has-[:focus-visible]:opacity-0 md:group-has-[[aria-expanded=true]]:opacity-0";
+  "-translate-y-1/2 pointer-events-none absolute top-1/2 right-1 flex h-5 items-center transition-opacity lg:group-hover:opacity-0 lg:group-has-[:focus-visible]:opacity-0 lg:group-has-[[aria-expanded=true]]:opacity-0";
 
 // Small markers (running/starting/unseen dot, or the draft pencil when there's
 // no session state) get a fixed size-6 centered box so their glyph lands 16px
@@ -809,7 +809,7 @@ function SidebarImpl({
   useMigrateLocalPinsToServer(serverPinnedIdSet, pinnedLoaded, pinnedFilterHonored);
 
   // Desktop-only drag-to-resize, mirroring the right rail. The width is
-  // exposed as a CSS variable consumed by the ``md:w-[var(--sidebar-width)]``
+  // exposed as a CSS variable consumed by the ``lg:w-[var(--sidebar-width)]``
   // class so it only applies on desktop — on mobile the sidebar is a
   // full-screen overlay (``fixed inset-0``) and the variable is ignored.
   const { width: sidebarWidth, handleProps: resizeHandleProps } = useResizableSidebar();
@@ -861,7 +861,7 @@ function SidebarImpl({
           tabIndex={effectiveOpen ? 0 : -1}
           aria-hidden={!effectiveOpen}
           className={cn(
-            "fixed inset-0 z-[45] bg-black/25 transition-opacity duration-200 ease-out md:hidden",
+            "fixed inset-0 z-[45] bg-black/25 transition-opacity duration-200 ease-out lg:hidden",
             effectiveOpen ? "opacity-100" : "pointer-events-none opacity-0",
           )}
           style={dragging ? { opacity: dragProgress, transition: "none" } : undefined}
@@ -889,7 +889,7 @@ function SidebarImpl({
           // conversations-sidebar only matters under the macOS Electron
           // shell, where it pushes the card below the traffic lights
           // (see the [data-electron-mac] rules in index.css).
-          "conversations-sidebar flex flex-col bg-card md:select-none",
+          "conversations-sidebar flex flex-col bg-card lg:select-none",
           // Mobile (default): a fixed drawer that slides in via translate-x
           // and stops short of the right edge, leaving a tappable strip of the
           // chat behind it. The floating-card treatment below is desktop-only.
@@ -898,21 +898,21 @@ function SidebarImpl({
           // opens (and never repaints it), letting the chat bleed through the
           // 60%-alpha glass --card. Desktop keeps the translucent bg-card —
           // there the sidebar pushes content aside, so nothing sits behind it.
-          "max-md:bg-card-solid",
-          // `max-md:right-14` is the ChatGPT-style peek strip: the drawer covers
+          "max-lg:bg-card-solid",
+          // `max-lg:right-14` is the ChatGPT-style peek strip: the drawer covers
           // most of the phone but stops short of the right edge so the chat stays
           // visible (and tappable through the scrim) behind it.
           "fixed inset-0 z-50",
           // The settings nav takes the sidebar over and its "Back" row is the
           // only way out, so there the drawer stays full-bleed (and gets no
           // dismiss scrim) rather than offering a tap that strands the user.
-          !inSettings && "max-md:right-14",
+          !inSettings && "max-lg:right-14",
           // Mobile only: animate the slide so the iOS edge-swipe settles
           // smoothly on release. Suppressed inline while a drag is live (the
           // overlay must track the finger 1:1). Scoped to transform so it can't
           // re-introduce the width-animation lag the base comment warns about,
           // and gated to mobile so the desktop floating card is unaffected.
-          "max-md:transition-transform max-md:duration-200 max-md:ease-out",
+          "max-lg:transition-transform max-lg:duration-200 max-lg:ease-out",
           effectiveOpen ? "translate-x-0" : "-translate-x-full",
           // Desktop: a full-height panel flush to the window edge, carrying
           // the brand gradient canvas (see html:not(.dark) .conversations-sidebar
@@ -920,17 +920,17 @@ function SidebarImpl({
           // divider — no outer margin or rounding. Width (the user-resizable
           // variable) animates →0 to push main; when closed the border
           // collapses too so nothing lingers.
-          "md:translate-x-0 md:overflow-hidden",
+          "lg:translate-x-0 lg:overflow-hidden",
           // Normal desktop flow: relative panel that pushes main. Suppressed while
-          // peeking so its `md:inset-auto`/`md:relative` don't override the
-          // floating-card positioning below (same `md:` layer, source order wins).
-          !peek && "md:relative md:inset-auto",
-          open || peek ? "md:m-0 md:w-[var(--sidebar-width)] " : "md:m-0 md:w-0 md:border-0",
+          // peeking so its `lg:inset-auto`/`lg:relative` don't override the
+          // floating-card positioning below (same `lg:` layer, source order wins).
+          !peek && "lg:relative lg:inset-auto",
+          open || peek ? "lg:m-0 lg:w-[var(--sidebar-width)] " : "lg:m-0 lg:w-0 lg:border-0",
           // Peek: float as a card 4px off the viewport edge (capped at 300px wide),
           // ringed and shadowed, sliding+fading in from the left so it reads as an
           // overlay rather than a push.
           peek &&
-            "is-peek md:absolute md:inset-2 p-0 md:max-w-[400px] ring-1 ring-border rounded-xl md:shadow-xl animate-in fade-in slide-in-from-left-4 duration-200 ease-out",
+            "is-peek lg:absolute lg:inset-2 p-0 lg:max-w-[400px] ring-1 ring-border rounded-xl lg:shadow-xl animate-in fade-in slide-in-from-left-4 duration-200 ease-out",
         )}
         style={
           {
@@ -959,7 +959,7 @@ function SidebarImpl({
         {!peek && (
           <div
             {...resizeHandleProps}
-            className="absolute inset-y-0 right-0 z-10 hidden w-1 cursor-col-resize transition-colors hover:bg-primary/30 active:bg-primary/50 md:block"
+            className="absolute inset-y-0 right-0 z-10 hidden w-1 cursor-col-resize transition-colors hover:bg-primary/30 active:bg-primary/50 lg:block"
           />
         )}
         {inSettings ? (
@@ -1161,11 +1161,11 @@ function SidebarImpl({
                 ref={scrollContainerRef}
                 // Keep wheel/touch scrolling without letting classic-scrollbar
                 // platforms reserve a wide, permanently visible Sidebar gutter.
-                // max-md:pb-14 is the floating Settings chip's clearance: the
+                // max-lg:pb-14 is the floating Settings chip's clearance: the
                 // chip is a non-scrolling sibling pinned bottom-right, so
                 // without a gutter the last row's always-visible kebab parks
                 // underneath it and can't be tapped.
-                className="relative flex-1 overflow-y-auto px-2 pt-4 pb-3 [scrollbar-width:none] max-md:pb-16 [&::-webkit-scrollbar]:hidden"
+                className="relative flex-1 overflow-y-auto px-2 pt-4 pb-3 [scrollbar-width:none] max-lg:pb-16 [&::-webkit-scrollbar]:hidden"
               >
                 <ConversationList
                   conversationsQuery={displayQuery}
@@ -1194,7 +1194,7 @@ function SidebarImpl({
           drawer keeps once the collapse toggle is gone. */}
               <SidebarSettingsButton
                 testId="sidebar-settings-float"
-                className="absolute right-3 bottom-3 md:hidden"
+                className="absolute right-3 bottom-3 lg:hidden"
               />
             </div>
 
@@ -2505,15 +2505,15 @@ function SectionHeader({
   // "New session" fallback at every breakpoint.
   const clusterRestMargin = showsMarker ? (icon ? "-mr-1" : "mr-1") : "mr-2";
   const clusterHoverDesktopMargin = hasPersistentAction
-    ? "[@media((hover:hover)_and_(pointer:fine))]:md:mr-7"
+    ? "[@media((hover:hover)_and_(pointer:fine))]:lg:mr-7"
     : showsMarker
       ? icon
-        ? "[@media((hover:hover)_and_(pointer:fine))]:md:-mr-1"
-        : "[@media((hover:hover)_and_(pointer:fine))]:md:mr-1"
-      : "[@media((hover:hover)_and_(pointer:fine))]:md:mr-2";
+        ? "[@media((hover:hover)_and_(pointer:fine))]:lg:-mr-1"
+        : "[@media((hover:hover)_and_(pointer:fine))]:lg:mr-1"
+      : "[@media((hover:hover)_and_(pointer:fine))]:lg:mr-2";
   const markerFade = actionHoverOnly
     ? "[@media((hover:hover)_and_(pointer:fine))]:group-hover/section:opacity-0 [@media((hover:hover)_and_(pointer:fine))]:group-has-[[data-state=open]]/header:opacity-0"
-    : "[@media((hover:hover)_and_(pointer:fine))]:md:group-hover/section:opacity-0 [@media((hover:hover)_and_(pointer:fine))]:md:group-has-[[data-state=open]]/header:opacity-0";
+    : "[@media((hover:hover)_and_(pointer:fine))]:lg:group-hover/section:opacity-0 [@media((hover:hover)_and_(pointer:fine))]:lg:group-has-[[data-state=open]]/header:opacity-0";
   // The hover-only control's focus reveal (`focus-visible:not-sr-only`) is
   // ungated by pointer type, so a coarse-pointer tablet with a keyboard can
   // land focus on it. Its focus fade must therefore fire at every pointer type
@@ -2523,10 +2523,10 @@ function SectionHeader({
   const actionFocusFade = actionFocusVisible
     ? actionHoverOnly
       ? "group-has-[[data-header-controls]_:focus-visible]/header:opacity-0"
-      : "[@media((hover:hover)_and_(pointer:fine))]:md:group-has-[[data-header-controls]_:focus-visible]/header:opacity-0"
+      : "[@media((hover:hover)_and_(pointer:fine))]:lg:group-has-[[data-header-controls]_:focus-visible]/header:opacity-0"
     : actionHoverOnly
       ? "group-has-[[data-header-controls]:focus-within]/header:opacity-0"
-      : "[@media((hover:hover)_and_(pointer:fine))]:md:group-has-[[data-header-controls]:focus-within]/header:opacity-0";
+      : "[@media((hover:hover)_and_(pointer:fine))]:lg:group-has-[[data-header-controls]:focus-within]/header:opacity-0";
   const button = (
     <button
       type="button"
@@ -2558,14 +2558,14 @@ function SectionHeader({
         // rather than trailing the name. Mobile (no hover) keeps the folder
         // icon and shows the trailing chevron below.
         <span className="relative flex size-4 shrink-0 items-center justify-center">
-          <span className="flex md:transition-opacity md:group-hover:opacity-0 md:group-focus-visible:opacity-0">
+          <span className="flex lg:transition-opacity lg:group-hover:opacity-0 lg:group-focus-visible:opacity-0">
             {icon}
           </span>
           <ChevronRightIcon
             className={cn(
               "absolute size-3.5 opacity-0 transition-[transform,opacity]",
               !collapsed && "rotate-90",
-              "hidden md:flex md:group-hover:opacity-100 md:group-focus-visible:opacity-100",
+              "hidden lg:flex lg:group-hover:opacity-100 lg:group-focus-visible:opacity-100",
             )}
           />
         </span>
@@ -2579,8 +2579,8 @@ function SectionHeader({
           "size-3.5 shrink-0 transition-[transform,opacity]",
           !collapsed && "rotate-90",
           icon
-            ? "md:hidden"
-            : "md:opacity-0 md:group-hover:opacity-100 md:group-focus-visible:opacity-100",
+            ? "lg:hidden"
+            : "lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-visible:opacity-100",
         )}
       />
       {/* A hidden row inside this collapsed section carries a marker — surface
@@ -2803,7 +2803,7 @@ function SectionGroup({
           // clicked button keeps focus afterward.
           <div
             data-header-controls
-            className="-translate-y-1/2 absolute top-1/2 right-1 flex items-center transition-opacity [@media((hover:hover)_and_(pointer:fine))]:md:opacity-0 [@media((hover:hover)_and_(pointer:fine))]:md:has-[:focus-visible]:opacity-100 [@media((hover:hover)_and_(pointer:fine))]:md:group-has-[[data-state=open]]/header:opacity-100 [@media((hover:hover)_and_(pointer:fine))]:md:group-hover/header:opacity-100"
+            className="-translate-y-1/2 absolute top-1/2 right-1 flex items-center transition-opacity [@media((hover:hover)_and_(pointer:fine))]:lg:opacity-0 [@media((hover:hover)_and_(pointer:fine))]:lg:has-[:focus-visible]:opacity-100 [@media((hover:hover)_and_(pointer:fine))]:lg:group-has-[[data-state=open]]/header:opacity-100 [@media((hover:hover)_and_(pointer:fine))]:lg:group-hover/header:opacity-100"
           >
             {headerAction}
           </div>
@@ -2923,13 +2923,13 @@ function ConversationSection({
               className={cn(
                 "-translate-y-1/2 absolute top-1/2 right-1 flex items-center gap-0.5",
                 // A hover-only action reveals at every width on a fine hover
-                // pointer (no `md:`), so the badge it overlays is protected from
+                // pointer (no `lg:`), so the badge it overlays is protected from
                 // its at-rest hit target on narrow hover desktops too. Every
                 // other header keeps the width-gated reveal.
                 protectsCollapsedBadge &&
                   (actionHoverOnly
                     ? "[@media((hover:hover)_and_(pointer:fine))]:pointer-events-none [@media((hover:hover)_and_(pointer:fine))]:group-has-[[data-header-controls]:focus-within]/header:pointer-events-auto [@media((hover:hover)_and_(pointer:fine))]:group-hover/header:pointer-events-auto [@media((hover:hover)_and_(pointer:fine))]:group-has-[[data-state=open]]/header:pointer-events-auto [@media((hover:hover)_and_(pointer:fine))]:has-[[aria-expanded=true]]:pointer-events-auto"
-                    : "[@media((hover:hover)_and_(pointer:fine))]:md:pointer-events-none [@media((hover:hover)_and_(pointer:fine))]:md:group-has-[[data-header-controls]:focus-within]/header:pointer-events-auto [@media((hover:hover)_and_(pointer:fine))]:md:group-hover/header:pointer-events-auto [@media((hover:hover)_and_(pointer:fine))]:md:group-has-[[data-state=open]]/header:pointer-events-auto [@media((hover:hover)_and_(pointer:fine))]:md:group-has-[[data-testid=session-filter][aria-expanded=true]]/header:pointer-events-auto [@media((hover:hover)_and_(pointer:fine))]:md:has-[[aria-expanded=true]]:pointer-events-auto"),
+                    : "[@media((hover:hover)_and_(pointer:fine))]:lg:pointer-events-none [@media((hover:hover)_and_(pointer:fine))]:lg:group-has-[[data-header-controls]:focus-within]/header:pointer-events-auto [@media((hover:hover)_and_(pointer:fine))]:lg:group-hover/header:pointer-events-auto [@media((hover:hover)_and_(pointer:fine))]:lg:group-has-[[data-state=open]]/header:pointer-events-auto [@media((hover:hover)_and_(pointer:fine))]:lg:group-has-[[data-testid=session-filter][aria-expanded=true]]/header:pointer-events-auto [@media((hover:hover)_and_(pointer:fine))]:lg:has-[[aria-expanded=true]]:pointer-events-auto"),
               )}
             >
               {headerAction && (
@@ -2943,7 +2943,7 @@ function ConversationSection({
                     "flex items-center transition-opacity",
                     actionHoverOnly
                       ? "[@media((hover:hover)_and_(pointer:fine))]:opacity-0 [@media((hover:hover)_and_(pointer:fine))]:group-has-[[data-header-controls]:focus-within]/header:opacity-100 [@media((hover:hover)_and_(pointer:fine))]:group-hover/header:opacity-100 [@media((hover:hover)_and_(pointer:fine))]:group-has-[[data-state=open]]/header:opacity-100 [@media((hover:hover)_and_(pointer:fine))]:has-[[aria-expanded=true]]:opacity-100"
-                      : "[@media((hover:hover)_and_(pointer:fine))]:md:opacity-0 [@media((hover:hover)_and_(pointer:fine))]:md:group-has-[[data-header-controls]:focus-within]/header:opacity-100 [@media((hover:hover)_and_(pointer:fine))]:md:group-hover/header:opacity-100 [@media((hover:hover)_and_(pointer:fine))]:md:group-has-[[data-state=open]]/header:opacity-100 [@media((hover:hover)_and_(pointer:fine))]:md:group-has-[[data-testid=session-filter][aria-expanded=true]]/header:opacity-100 [@media((hover:hover)_and_(pointer:fine))]:md:has-[[aria-expanded=true]]:opacity-100",
+                      : "[@media((hover:hover)_and_(pointer:fine))]:lg:opacity-0 [@media((hover:hover)_and_(pointer:fine))]:lg:group-has-[[data-header-controls]:focus-within]/header:opacity-100 [@media((hover:hover)_and_(pointer:fine))]:lg:group-hover/header:opacity-100 [@media((hover:hover)_and_(pointer:fine))]:lg:group-has-[[data-state=open]]/header:opacity-100 [@media((hover:hover)_and_(pointer:fine))]:lg:group-has-[[data-testid=session-filter][aria-expanded=true]]/header:opacity-100 [@media((hover:hover)_and_(pointer:fine))]:lg:has-[[aria-expanded=true]]:opacity-100",
                   )}
                 >
                   {headerAction}
@@ -2968,7 +2968,7 @@ function ConversationSection({
               <div
                 className={cn(
                   SIDEBAR_ROW,
-                  "mt-1 mr-2 ml-8 flex flex-col items-start justify-center gap-1.5 px-0 py-1 pb-2 text-left md:py-1 md:pb-2",
+                  "mt-1 mr-2 ml-8 flex flex-col items-start justify-center gap-1.5 px-0 py-1 pb-2 text-left lg:py-1 lg:pb-2",
                 )}
               >
                 <p className="text-ui text-muted-foreground">{emptyMessage}</p>
@@ -3171,13 +3171,13 @@ function ConversationMenuItems({
 
   return (
     <>
-      {/* Pin/Unpin — mobile-only (md:hidden); desktop uses the
+      {/* Pin/Unpin — mobile-only (lg:hidden); desktop uses the
           hover-revealed quick-pin button. Archived rows omit it (archive
           outranks pin). */}
       {!isArchived && (
         <C.Item
           data-testid="pin-conversation"
-          className="md:hidden"
+          className="lg:hidden"
           onSelect={() => onTogglePinned(conversation.id)}
         >
           {isPinned ? <PinOffIcon className="size-3.5" /> : <PinIcon className="size-3.5" />}
@@ -3812,8 +3812,8 @@ function ConversationRowImpl({
         // `focus-within` also fires for a plain click, which shrank the reserve
         // on the selected row while the marker stayed put, sliding the title
         // under it.
-        !selectionMode && "md:group-hover:pr-20 md:group-has-[:focus-visible]:pr-20",
-        !selectionMode && menuOpen && "md:pr-20",
+        !selectionMode && "lg:group-hover:pr-20 lg:group-has-[:focus-visible]:pr-20",
+        !selectionMode && menuOpen && "lg:pr-20",
         selectionMode && "pr-2 pl-8",
         !selectionMode && isActive && SIDEBAR_ACTIVE_HIGHLIGHT,
         selectionMode && isSelected && SIDEBAR_ACTIVE_HIGHLIGHT,
@@ -4011,16 +4011,16 @@ function ConversationRowImpl({
                 // a project) already conveys the pinned state. Revealed glyph:
                 // unpin if pinned, pin otherwise.
                 //
-                // `md:inline-flex` (not `md:block`): the Button base is
+                // `lg:inline-flex` (not `lg:block`): the Button base is
                 // `inline-flex` and relies on it for `items-center
-                // justify-center` to center the icon. `md:block` would override
+                // justify-center` to center the icon. `lg:block` would override
                 // that display and collapse the centering, leaving the glyph
                 // pinned to the top-left of the button — so keep the flex
                 // display when revealing it.
                 "text-muted-foreground transition-opacity",
-                "hidden md:inline-flex",
-                "md:opacity-0 md:group-hover:opacity-100",
-                "md:group-has-[:focus-visible]:opacity-100 md:group-has-[[aria-expanded=true]]:opacity-100",
+                "hidden lg:inline-flex",
+                "lg:opacity-0 lg:group-hover:opacity-100",
+                "lg:group-has-[:focus-visible]:opacity-100 lg:group-has-[[aria-expanded=true]]:opacity-100",
               )}
               onClick={(e) => {
                 // Keep the toggle click off the surrounding Link (no navigation).
@@ -4054,9 +4054,9 @@ function ConversationRowImpl({
                   data-testid="quick-archive-conversation"
                   className={cn(
                     "text-muted-foreground transition-opacity",
-                    "hidden md:inline-flex",
-                    "md:opacity-0 md:group-hover:opacity-100",
-                    "md:group-has-[:focus-visible]:opacity-100 md:group-has-[[aria-expanded=true]]:opacity-100",
+                    "hidden lg:inline-flex",
+                    "lg:opacity-0 lg:group-hover:opacity-100",
+                    "lg:group-has-[:focus-visible]:opacity-100 lg:group-has-[[aria-expanded=true]]:opacity-100",
                   )}
                   onClick={(e) => {
                     // Keep the toggle click off the surrounding Link (no navigation).
@@ -4094,9 +4094,9 @@ function ConversationRowImpl({
                 // is open so the trigger doesn't vanish under the cursor.
                 className={cn(
                   "text-muted-foreground transition-opacity",
-                  "hidden md:inline-flex",
-                  "md:opacity-0 md:group-hover:opacity-100 md:group-has-[:focus-visible]:opacity-100",
-                  "md:aria-expanded:opacity-100",
+                  "hidden lg:inline-flex",
+                  "lg:opacity-0 lg:group-hover:opacity-100 lg:group-has-[:focus-visible]:opacity-100",
+                  "lg:aria-expanded:opacity-100",
                 )}
                 onClick={(e) => {
                   // Keep the trigger click from bubbling into the Link.
@@ -4989,7 +4989,7 @@ function ConversationEditRow({ initialTitle, onCommit, onCancel }: ConversationE
   return (
     // Match the interactive row's responsive box metrics so entering edit mode
     // doesn't shift the list. pl-1 + the input's px-1 align with row titles.
-    <div className="sidebar-compact-text flex h-8 items-center gap-1 rounded-[var(--radius-otto-sm)] bg-muted pr-1 pl-1 md:h-7">
+    <div className="sidebar-compact-text flex h-8 items-center gap-1 rounded-[var(--radius-otto-sm)] bg-muted pr-1 pl-1 lg:h-7">
       <input
         ref={inputRef}
         type="text"
@@ -5005,7 +5005,7 @@ function ConversationEditRow({ initialTitle, onCommit, onCancel }: ConversationE
         onKeyDown={handleKeyDown}
         onBlur={handleBlur}
         data-testid="rename-conversation-input"
-        className="min-w-0 flex-1 truncate rounded bg-transparent px-1 py-0.5 outline-none md:select-text"
+        className="min-w-0 flex-1 truncate rounded bg-transparent px-1 py-0.5 outline-none lg:select-text"
       />
       <Button
         type="button"
@@ -5449,8 +5449,8 @@ function BulkActionBar({
 }
 
 /**
- * Returns true on mobile viewports (below the `md` breakpoint of
- * 768px). Used to gate the auto-close-on-navigation behavior — on
+ * Returns true on chat-first viewports (below the `lg` breakpoint of
+ * 1024px). Used to gate the auto-close-on-navigation behavior — on
  * mobile the sidebar is a full-screen overlay so dismissing on action
  * is what reveals the destination; on desktop the sidebar pushes content
  * aside and staying open is more useful.
@@ -5459,7 +5459,7 @@ function BulkActionBar({
  */
 export function isMobileViewport(): boolean {
   if (typeof window === "undefined") return false;
-  return !window.matchMedia("(min-width: 768px)").matches;
+  return !window.matchMedia("(min-width: 1024px)").matches;
 }
 
 // Default collapse state: every section (Pinned / Projects / Chats / Shared)

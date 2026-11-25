@@ -11,6 +11,7 @@ import asyncio
 import contextlib
 import json
 import math
+import os
 import re
 import secrets
 import time
@@ -9058,6 +9059,11 @@ def _repl_terminal_ui_labels(
     """
     from omnigent.harness_aliases import is_native_harness
 
+    # Windows cannot host the tmux/PTY-backed auxiliary REPL. Do not stamp a
+    # terminal-first UI label that would leave the browser showing a terminal
+    # stuck in "Starting up…" while chat itself is healthy.
+    if os.name == "nt":
+        return {}
     if agent_cache is None or harness_override == "auto":
         return {}
     if harness_override:

@@ -76,6 +76,7 @@ from .executor import (
 )
 from .hook_scripts.subagent_router import HOOK_TIMEOUT_HEADROOM_S as _ROUTER_HOOK_HEADROOM_S
 from .hook_scripts.subagent_router import REQUEST_TIMEOUT_S as _ROUTER_REQUEST_TIMEOUT_S
+from .native_attachments import materialize_attachment, unresolved_attachment_marker
 
 logger = logging.getLogger(__name__)
 
@@ -1911,8 +1912,9 @@ def _build_initial_prompt(
 
     For single-message or single-user-message inputs, returns
     the latest user content directly (may be multimodal). For
-    multi-turn history, serializes prior turns as text and
-    returns a plain string.
+    multi-turn history, serializes prior turns as text. If the
+    latest user turn is multimodal, it keeps that turn structured
+    so image bytes are never serialized into the history prompt.
 
     :param messages: Conversation history.
     :returns: A string prompt or a list of content block dicts.
@@ -1921,20 +1923,60 @@ def _build_initial_prompt(
     if len(messages) <= 1 or len(user_messages) <= 1:
         return _extract_latest_user_content(messages)
 
+    latest_user_index = max(
+        index for index, msg in enumerate(messages) if msg.get("role") == "user"
+    )
+    latest_user_content = messages[latest_user_index].get("content")
+    history_messages = messages[:latest_user_index]
+
     lines = ["Conversation so far:"]
-    for msg in messages:
+    for msg in history_messages:
         role = str(msg.get("role", "user")).replace("_", " ")
-        raw_content = msg.get("content")
-        if raw_content is None:
-            content = ""
-        elif isinstance(raw_content, str):
-            content = raw_content
-        else:
-            content = json.dumps(raw_content, ensure_ascii=True)
+        content = _history_content(msg.get("content"))
         lines.append(f"{role}: {content}")
+    if isinstance(latest_user_content, list):
+        lines.append("")
+        lines.append(
+            "Respond to the latest user message below, using the conversation above as context."
+        )
+        return [{"type": "input_text", "text": "\n".join(lines)}, *latest_user_content]
+
+    lines.append(f"user: {_history_content(latest_user_content)}")
     lines.append("")
     lines.append("Respond to the latest user message, using the conversation above as context.")
     return "\n".join(lines)
+
+
+_DATA_URI_RE = re.compile(
+    r"data:(?P<mime>[^;,\s]+)(?:;[^,\s]*)*;base64,(?P<payload>[A-Za-z0-9+/=_-]+)",
+    re.IGNORECASE,
+)
+
+
+def _history_content(value: object) -> str:
+    """Render prior content without retaining inline attachment bytes."""
+
+    def redact(item: object) -> object:
+        if isinstance(item, str):
+            return _DATA_URI_RE.sub(
+                lambda match: (
+                    f"[attachment: {match.group('mime')}, "
+                    f"{len(match.group('payload'))} base64 chars]"
+                ),
+                item,
+            )
+        if isinstance(item, list):
+            return [redact(child) for child in item]
+        if isinstance(item, dict):
+            return {key: redact(child) for key, child in item.items()}
+        return item
+
+    if value is None:
+        return ""
+    redacted = redact(value)
+    if isinstance(redacted, str):
+        return redacted
+    return json.dumps(redacted, ensure_ascii=True)
 
 
 def _prompt_for_turn(messages: list[Message], *, is_new_thread: bool) -> str | list[CodexParams]:
@@ -1958,15 +2000,17 @@ def _prompt_for_turn(messages: list[Message], *, is_new_thread: bool) -> str | l
 
 def _to_codex_input_items(
     blocks: list[CodexParams],
+    *,
+    attachment_dir: Path | None = None,
 ) -> list[CodexParams]:
     """
     Convert Responses API content blocks to Codex app-server
     ``turn/start`` input items.
 
     The Codex app-server accepts ``{"type": "text", ...}`` for
-    text and ``{"type": "image", "image_url": "..."}`` for
-    images. This maps the Responses API ``input_image`` /
-    ``input_text`` block types to the Codex wire format.
+    text and image input items. Resolved image data URIs are materialized to a
+    local file when *attachment_dir* is available, because the app-server has
+    a 1 MiB request limit and cannot accept multi-megabyte base64 payloads.
 
     :param blocks: Responses API content block dicts (may include
         ``input_text``, ``input_image``, ``input_file``).
@@ -1982,7 +2026,14 @@ def _to_codex_input_items(
         elif block_type == "input_image":
             url = block.get("image_url")
             if isinstance(url, str) and url:
-                items.append({"type": "image", "url": url})
+                if attachment_dir is not None and url.startswith("data:"):
+                    path = materialize_attachment(block, attachment_dir)
+                    if path is not None:
+                        items.append({"type": "localImage", "path": str(path)})
+                    else:
+                        items.append({"type": "text", "text": unresolved_attachment_marker(block)})
+                else:
+                    items.append({"type": "image", "url": url})
         elif block_type == "input_file":
             # The Codex CLI does not support ``input_file`` blocks; it only
             # accepts ``text``, ``image``, ``localImage``, ``skill``, and
@@ -2633,7 +2684,7 @@ class _CodexAppServerSession:
                     break
         prompt = _prompt_for_turn(prompt_messages, is_new_thread=is_new_thread)
         if isinstance(prompt, list):
-            turn_input = _to_codex_input_items(prompt)
+            turn_input = _to_codex_input_items(prompt, attachment_dir=self._codex_home_dir)
         else:
             turn_input = [{"type": "text", "text": prompt}]
         # Newer Codex app-server builds apply reasoning effort through

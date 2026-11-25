@@ -226,11 +226,11 @@ function TranscriptImpl({
       conversation area without requiring Conversation to forward refs. */}
       <div
         ref={setConversationEl}
-        className="@container/chat relative flex min-h-0 flex-1 overflow-hidden"
+        className="@container/chat relative flex min-h-0 min-w-0 w-full max-w-full flex-1 overflow-hidden"
       >
         <Conversation
           key={conversationKey ?? "landing"}
-          className={cn(!hasTasks && "chat-scroll-fade", "flex-1")}
+          className={cn(!hasTasks && "chat-scroll-fade", "min-w-0 w-full max-w-full flex-1")}
         >
           <ConversationContent
             scrollClassName="transcript-hide-native-scrollbar"

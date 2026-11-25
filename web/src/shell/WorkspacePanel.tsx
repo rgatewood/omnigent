@@ -657,7 +657,7 @@ interface WorkspacePanelProps {
  * Terminals and Agents so each can claim the full rail height
  * instead of competing for a vertically-split slot.
  *
- * Desktop-only (``hidden md:flex``): on mobile the rail's contents are
+ * Desktop-only (``hidden lg:flex``): on mobile the rail's contents are
  * reached via the header's session-menu FAB → full-screen drawers. The
  * card is drag-resizable via a handle on its left edge.
  *
@@ -743,8 +743,8 @@ function WorkspacePanelImpl({
       // against.
       data-maximized={maximized || undefined}
       className={cn(
-        "@container/rail relative z-40 hidden md:flex md:min-h-0 md:flex-col md:overflow-hidden md:border-l md:border-border md:bg-card",
-        maximized ? "md:absolute md:inset-0" : "md:shrink-0",
+        "@container/rail relative z-40 hidden lg:flex lg:min-h-0 lg:flex-col lg:overflow-hidden lg:border-l lg:border-border lg:bg-card",
+        maximized ? "lg:absolute lg:inset-0" : "lg:shrink-0",
       )}
       // Width is fixed by the resize handle normally; maximized ignores it and
       // stretches to the absolute inset instead. The width doubles as the

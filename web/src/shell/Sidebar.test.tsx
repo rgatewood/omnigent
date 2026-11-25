@@ -418,13 +418,13 @@ describe("Sidebar session list", () => {
     // as desktop; only desktop hover widens it for the revealed controls.
     expect(row).toHaveClass("pr-2");
     expect(row.className).not.toMatch(/(?:^|\s)pr-28(?:\s|$)/);
-    expect(row.className).toContain("md:group-hover:pr-20");
+    expect(row.className).toContain("lg:group-hover:pr-20");
     // Keyed on `:focus-visible`, matching when the trailing controls appear and
     // the state marker fades. `focus-within` would also fire for a plain click,
     // narrowing the reserve on the selected row while the marker stayed put.
-    expect(row.className).toContain("md:group-has-[:focus-visible]:pr-20");
-    expect(row.className).not.toContain("md:group-focus-within:pr-20");
-    expect(row.className).not.toMatch(/(?:^|\s)md:pr-20(?:\s|$)/);
+    expect(row.className).toContain("lg:group-has-[:focus-visible]:pr-20");
+    expect(row.className).not.toContain("lg:group-focus-within:pr-20");
+    expect(row.className).not.toMatch(/(?:^|\s)lg:pr-20(?:\s|$)/);
   });
 
   it("narrows the awaiting row's reserve on the same trigger that fades its tag", () => {
@@ -446,7 +446,7 @@ describe("Sidebar session list", () => {
 
     // Every state that narrows the reserve must also fade the tag, and vice
     // versa, so the two can never disagree about whether the space is free.
-    for (const trigger of ["md:group-hover:", "md:group-has-[:focus-visible]:"]) {
+    for (const trigger of ["lg:group-hover:", "lg:group-has-[:focus-visible]:"]) {
       expect(row.className).toContain(`${trigger}pr-20`);
       expect(tag.parentElement!.className).toContain(`${trigger}opacity-0`);
     }
@@ -718,7 +718,7 @@ describe("Sidebar session list", () => {
       "gap-2",
       "px-2",
       "py-1.5",
-      "md:py-1",
+      "lg:py-1",
     );
     expect(inbox).toHaveClass("hover:bg-muted", "hover:text-foreground", "dark:hover:bg-muted/50");
     expect(inbox.className).not.toContain("sidebar-hover");
@@ -797,10 +797,10 @@ describe("Sidebar session list", () => {
     expect(selectSessions).toHaveClass("text-muted-foreground", "hover:text-foreground");
     expect(selectSessions).not.toHaveTextContent("Select sessions");
     expect(selectSessions.parentElement).toHaveClass(
-      "[@media((hover:hover)_and_(pointer:fine))]:md:opacity-0",
-      "[@media((hover:hover)_and_(pointer:fine))]:md:group-hover/header:opacity-100",
-      "[@media((hover:hover)_and_(pointer:fine))]:md:group-has-[[data-header-controls]:focus-within]/header:opacity-100",
-      "[@media((hover:hover)_and_(pointer:fine))]:md:group-has-[[data-testid=session-filter][aria-expanded=true]]/header:opacity-100",
+      "[@media((hover:hover)_and_(pointer:fine))]:lg:opacity-0",
+      "[@media((hover:hover)_and_(pointer:fine))]:lg:group-hover/header:opacity-100",
+      "[@media((hover:hover)_and_(pointer:fine))]:lg:group-has-[[data-header-controls]:focus-within]/header:opacity-100",
+      "[@media((hover:hover)_and_(pointer:fine))]:lg:group-has-[[data-testid=session-filter][aria-expanded=true]]/header:opacity-100",
     );
 
     const filterSessions = within(sessionsSection!).getByRole("button", {
@@ -808,7 +808,7 @@ describe("Sidebar session list", () => {
     });
     // The filter never fades; its wrapper re-enables hit-testing inside the
     // pointer-events-gated outer box (see the overlay hit-test spec below).
-    expect(filterSessions.parentElement).not.toHaveClass("md:opacity-0");
+    expect(filterSessions.parentElement).not.toHaveClass("lg:opacity-0");
     expect(filterSessions.parentElement).toHaveClass("pointer-events-auto", "flex");
     expect(filterSessions.parentElement!.parentElement).toHaveClass("absolute", "right-1", "flex");
 
@@ -1924,8 +1924,8 @@ describe("Sidebar project sections", () => {
     const menuItem = await screen.findByTestId("project-new-session-menu");
     for (const hiddenClass of [
       "hidden",
-      "md:hidden",
-      "[@media((hover:hover)_and_(pointer:fine))]:md:hidden",
+      "lg:hidden",
+      "[@media((hover:hover)_and_(pointer:fine))]:lg:hidden",
     ]) {
       expect(menuItem).not.toHaveClass(hiddenClass);
     }
@@ -1963,7 +1963,7 @@ describe("Sidebar project sections", () => {
     // touch screen (the reported foldable bug) — broader than the one literal.
     for (const cls of kebab.classList) {
       expect(cls).not.toMatch(
-        /^md:(flex|inline-flex|block|inline-block|inline|grid|inline-grid|table|contents|flow-root)$/,
+        /^lg:(flex|inline-flex|block|inline-block|inline|grid|inline-grid|table|contents|flow-root)$/,
       );
     }
   });
@@ -2002,14 +2002,14 @@ describe("Sidebar project sections", () => {
 
     const kebab = screen.getByTestId("project-actions");
     const revealWrapper = kebab.closest("div[class*=transition-opacity]")!;
-    // Opacity reveal is capability-gated with NO md: hidden at rest, shown on
+    // Opacity reveal is capability-gated with NO lg: hidden at rest, shown on
     // hover, at every width for a fine hover pointer.
     expect(revealWrapper).toHaveClass(
       "[@media((hover:hover)_and_(pointer:fine))]:opacity-0",
       "[@media((hover:hover)_and_(pointer:fine))]:group-hover/header:opacity-100",
     );
     for (const cls of revealWrapper.classList) {
-      expect(cls).not.toMatch(/:md:opacity-0$/);
+      expect(cls).not.toMatch(/:lg:opacity-0$/);
     }
     // A collapsed folder (marker shown) protects that marker from the kebab's
     // at-rest hit target with the same capability-only (no md) gate, so a
@@ -2020,7 +2020,7 @@ describe("Sidebar project sections", () => {
       "[@media((hover:hover)_and_(pointer:fine))]:group-hover/header:pointer-events-auto",
     );
     for (const cls of outerBox.classList) {
-      expect(cls).not.toMatch(/:md:pointer-events-none$/);
+      expect(cls).not.toMatch(/:lg:pointer-events-none$/);
     }
   });
 });
@@ -2095,7 +2095,7 @@ describe("Sidebar collapsed project marker", () => {
     // the rows' right edge.
     expect(slot).toHaveClass("-mr-1");
     expect(slot).not.toHaveClass("mr-14");
-    expect(slot).not.toHaveClass("[@media((hover:hover)_and_(pointer:fine))]:md:-mr-1");
+    expect(slot).not.toHaveClass("[@media((hover:hover)_and_(pointer:fine))]:lg:-mr-1");
     // The hover-driven fades track the fine-hover reveal (hover only exists on
     // fine), so they stay pointer-gated with no md.
     expect(slot).toHaveClass(
@@ -2113,7 +2113,7 @@ describe("Sidebar collapsed project marker", () => {
     // No width-gated fade survives for a hover-only action — that mismatch is
     // the narrow-hover overlap regression.
     for (const cls of slot.classList) {
-      expect(cls).not.toMatch(/:md:group-(hover|has-).*opacity-0$/);
+      expect(cls).not.toMatch(/:lg:group-(hover|has-).*opacity-0$/);
     }
   });
 
@@ -2224,7 +2224,7 @@ describe("Sidebar pin marker visibility", () => {
     const pinButton = within(pinned).getByTestId("quick-pin-conversation");
     // Hover-gated like every other row (no persistent opacity-100 marker), and
     // the control unpins.
-    expect(pinButton.className).toContain("md:opacity-0");
+    expect(pinButton.className).toContain("lg:opacity-0");
     expect(pinButton).toHaveAttribute("aria-label", "Unpin conversation");
   });
 
@@ -2234,7 +2234,7 @@ describe("Sidebar pin marker visibility", () => {
 
     const pinButton = screen.getByTestId("quick-pin-conversation");
     // Unpinned: hover-gated reveal (opacity-0 until group-hover).
-    expect(pinButton.className).toContain("md:opacity-0");
+    expect(pinButton.className).toContain("lg:opacity-0");
   });
 });
 
@@ -2302,7 +2302,7 @@ describe("Sidebar mobile overlay background", () => {
     // repaints it — so the chat bled through the overlay. The fix pins an
     // opaque background below the md breakpoint. If this assertion fails,
     // the override was removed and the Safari mobile bleed-through is back.
-    expect(aside.className).toContain("max-md:bg-card-solid");
+    expect(aside.className).toContain("max-lg:bg-card-solid");
     // Desktop keeps the glass treatment: base bg-card must stay alongside
     // the mobile override (removing it would kill the desktop frosted look).
     expect(aside.className).toMatch(/(^| )bg-card( |$)/);

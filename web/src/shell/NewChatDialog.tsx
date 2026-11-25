@@ -1017,9 +1017,17 @@ export function matchSkillInvocation(
 export function deriveHomeDir(entries: HostFilesystemEntry[]): string | null {
   const first = entries[0];
   if (!first) return null;
-  const slash = first.path.lastIndexOf("/");
+  // Host filesystem entries preserve the host's native separator. The web
+  // client is often running on a different machine, so do not assume POSIX
+  // paths here: a Windows host returns values such as
+  // `C:\\Users\\rsgat\\Desktop`.
+  const slash = Math.max(first.path.lastIndexOf("/"), first.path.lastIndexOf("\\"));
   if (slash < 0) return null;
-  return slash === 0 ? "/" : first.path.slice(0, slash);
+  if (slash === 0) return "/";
+  // Preserve the drive-root separator (`C:\\`) rather than returning the
+  // invalid workspace `C:` when the first entry is directly under the drive.
+  if (slash === 2 && /^[A-Za-z]:[\\/]/.test(first.path)) return first.path.slice(0, 3);
+  return first.path.slice(0, slash);
 }
 
 /**
@@ -2806,6 +2814,11 @@ export function NewChatLandingScreen() {
   // Host whose workspace was already seeded once, so a host re-pick doesn't
   // clobber the field (used by the per-host seeding effect below).
   const seededHostRef = useRef<string | null>(null);
+  // Records the path supplied by the generic host fallback. This lets the
+  // agent-specific workspace hint replace that fallback when the agent catalog
+  // resolves a moment later, without clobbering a recent, project-configured,
+  // or explicitly browsed workspace.
+  const autoSeededWorkspaceRef = useRef<string | null>(null);
   // Workspace the opt-in worktree effect already acted on, so it fires at most
   // once per settled workspace (and can't loop once it sets a branch name).
   const worktreeSeededForRef = useRef<string | null>(null);
@@ -3036,6 +3049,7 @@ export function NewChatLandingScreen() {
     const seededWorkspace = workspace === "";
     if (seededWorkspace) {
       workspaceFromConfigRef.current = false;
+      autoSeededWorkspaceRef.current = candidate;
       setWorkspace(candidate);
     }
     // Fork fresh only when we actually seeded the redirect AND no branch is set
@@ -3081,6 +3095,15 @@ export function NewChatLandingScreen() {
     prefillConfig?.agentId != null &&
     agents !== undefined &&
     !agentList.some((a) => a.id === prefillConfig.agentId);
+  // The native Claude terminal harness is intentionally unavailable on
+  // Windows: it requires tmux/PTY support. Keep it selectable for hosts that
+  // can run it, but never make it the implicit landing-screen default on a
+  // Windows workstation when a LunaOS SDK-backed agent is available.
+  const windowsDefaultAgent =
+    typeof navigator !== "undefined" && /Win/i.test(navigator.platform)
+      ? (agentList.find((a) => a.harness === "codex" || a.harness === "claude-sdk") ?? null)
+      : null;
+  const defaultAgent = windowsDefaultAgent ?? agentList[0] ?? null;
   const effectiveAgentId =
     pickedAgentId === PENDING_AGENT_ID && pendingAgentAllowedOnTarget
       ? PENDING_AGENT_ID
@@ -3088,7 +3111,7 @@ export function NewChatLandingScreen() {
         ? pickedAgentId
         : configuredAgentUnavailable
           ? null
-          : (agentList[0]?.id ?? null);
+          : (defaultAgent?.id ?? null);
   const selectedAgent = useMemo(
     () =>
       effectiveAgentId === PENDING_AGENT_ID && pendingAgent
@@ -3114,9 +3137,14 @@ export function NewChatLandingScreen() {
   useEffect(() => {
     if (!prefillSettled || selectedAgent == null || selectedAgent.workspace_hint == null) return;
     if (seededAgentWorkspaceHintRef.current === selectedAgent.id) return;
+    const hint = selectedAgent.workspace_hint;
+    const fallbackIsActive =
+      autoSeededWorkspaceRef.current !== null &&
+      normalizeWorkspacePath(workspace) === normalizeWorkspacePath(autoSeededWorkspaceRef.current);
     seededAgentWorkspaceHintRef.current = selectedAgent.id;
-    if (workspace === "" && !workspaceFromConfigRef.current) {
-      setWorkspace(selectedAgent.workspace_hint);
+    if (!workspaceFromConfigRef.current && (workspace === "" || fallbackIsActive)) {
+      autoSeededWorkspaceRef.current = hint;
+      setWorkspace(hint);
     }
   }, [prefillSettled, selectedAgent, workspace]);
   const selectedNativeHarness = nativeCodingAgentForAvailableAgent(selectedAgent)?.harness ?? null;
@@ -4791,7 +4819,7 @@ export function NewChatLandingScreen() {
             // dark:bg-card-solid stays opaque so dark glass --card doesn't show
             // through. Drag-over keeps its separate inset ring.
             className={cn(
-              "relative z-10 flex w-full flex-col rounded-2xl border border-border bg-card dark:bg-card-solid transition-shadow duration-150 has-[textarea:focus]:shadow-[var(--composer-shadow-focus)]",
+              "relative z-10 flex min-w-0 w-full flex-col rounded-2xl border border-border bg-card dark:bg-card-solid transition-shadow duration-150 has-[textarea:focus]:shadow-[var(--composer-shadow-focus)]",
               isDragActive && "ring-2 ring-ring ring-inset",
             )}
             data-testid="new-chat-landing-composer"
@@ -5057,7 +5085,7 @@ export function NewChatLandingScreen() {
                 here would also catch the .dark .bg-card glass rule (border +
                 shadow) and visually split the pill in half. */}
             <div
-              className="flex items-center justify-between px-2 pb-2"
+              className="mobile-composer-actions flex min-w-0 flex-nowrap items-center justify-between gap-1 px-2 pb-2"
               data-testid="new-chat-landing-actions"
             >
               {/* Attach + dictate — left side, mirroring the in-session composer. */}
@@ -5087,7 +5115,7 @@ export function NewChatLandingScreen() {
                   onInterim={dictation.replaceInterim}
                 />
               </div>
-              <div className="flex items-center gap-0.5 md:gap-2">
+              <div className="ml-auto flex min-w-0 shrink items-center gap-0.5 md:gap-2">
                 <div className="flex items-center rounded-lg transition-colors has-[button:not(:disabled)]:hover:bg-muted dark:has-[button:not(:disabled)]:hover:bg-muted/50 has-aria-expanded:bg-muted dark:has-aria-expanded:bg-muted/50 [&>button]:bg-transparent!">
                   {/* Agent / harness picker — selects the agent or harness only.
                     Its run-config knobs (model / effort / permission mode for
@@ -5116,7 +5144,8 @@ export function NewChatLandingScreen() {
                     // Match the gear's touch-target height so both halves fill
                     // the shared pill; pr-2 equals the gear icon's own centering
                     // inset (8px) so the divider sits evenly between them.
-                    triggerClassName="h-9 pr-2 md:h-8"
+                    triggerClassName="h-9 min-w-0 shrink pr-2 md:h-8"
+                    triggerLabelClassName="max-w-[8rem] max-[359px]:max-w-[5.5rem]"
                   />
                   {/* Gear — opens the selected agent's run-config modal, behind
                     a hairline divider. Both are hidden when the selected agent
@@ -5242,7 +5271,7 @@ export function NewChatLandingScreen() {
                           aria-label={creating ? "Starting session" : "Start session"}
                           aria-busy={creating}
                           data-testid="new-chat-landing-submit"
-                          className="size-8 rounded-lg bg-foreground disabled:bg-muted disabled:text-muted-foreground transition-opacity hover:opacity-80 disabled:opacity-100 "
+                          className="size-8 shrink-0 rounded-lg bg-foreground disabled:bg-muted disabled:text-muted-foreground transition-opacity hover:opacity-80 disabled:opacity-100 "
                         >
                           {creating ? (
                             <Loader2Icon className="size-4 animate-spin" />

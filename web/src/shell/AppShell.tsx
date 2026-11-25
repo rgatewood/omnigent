@@ -1845,7 +1845,7 @@ export function AppShell() {
         "hiddenInset"), so the web layer drops the sidebar below the
         traffic lights and supplies a drag strip in the freed space. */}
           <div
-            className="app-shell relative flex h-dvh bg-sidebar text-foreground"
+            className="app-shell relative flex h-dvh w-full max-w-full overflow-hidden bg-sidebar text-foreground"
             // Reflect the docked sidebar's open state so CSS can drop the
             // traffic-light clearance on surfaces the sidebar covers (see the
             // maximized workspace rail's tab strip in index.css): with the
@@ -1863,7 +1863,7 @@ export function AppShell() {
             {/* The Search/Settings/toggle cluster lives HERE on the macOS shell,
           not in the sidebar, so the three icons hold one fixed position beside
           the traffic lights no matter what the sidebar does. Inside the sidebar
-          they would be clipped and inert once it collapses (md:w-0 +
+          they would be clipped and inert once it collapses (lg:w-0 +
           overflow-hidden + inert), and while peeking the floating card's
           inset-2 would drag them off the lights' centre line. The sidebar's own
           copy is hidden on mac by CSS; this one is positioned by
@@ -1937,7 +1937,7 @@ export function AppShell() {
               <div
                 className={cn(
                   "relative flex min-h-0 min-w-0 flex-1",
-                  panelOpen && !terminalFirst && "md:hidden",
+                  panelOpen && !terminalFirst && "lg:hidden",
                 )}
                 style={
                   {
@@ -2028,7 +2028,7 @@ export function AppShell() {
               rendered in debug mode so the column doesn't occupy space in
               normal use. */}
                 {conversationId && debugMode && !panelOpen && !executionLogsOpen && (
-                  <div className="hidden md:flex md:flex-col md:w-56 md:shrink-0 md:border-l md:border-border md:overflow-y-auto md:px-2 md:pb-2 md:pt-12 md:gap-2">
+                  <div className="hidden lg:flex lg:flex-col lg:w-56 lg:shrink-0 lg:border-l lg:border-border lg:overflow-y-auto lg:px-2 lg:pb-2 lg:pt-12 lg:gap-2">
                     <SessionRail
                       conversationId={conversationId}
                       onExpandExecutionLogs={openExecutionLogsPanel}
@@ -2129,7 +2129,7 @@ export function AppShell() {
                 />
               )}
               {/* Mobile-only full-screen drawers for the rail tabs that have no
-          desktop push panel of their own. `MobilePanelDrawer` is `md:hidden`,
+          desktop push panel of their own. `MobilePanelDrawer` is `lg:hidden`,
           so these never collide with the desktop rail; they're opened from
           the session-menu FAB above. */}
               {conversationId && rootSessionId && (
@@ -2160,7 +2160,7 @@ export function AppShell() {
               )}
               {/* Mobile-only push panel — on desktop the viewer lives inside the inline aside. */}
               {conversationId && selectedFilePath !== null && (
-                <div className="md:hidden">
+                <div className="lg:hidden">
                   <FileViewer
                     open
                     conversationId={conversationId}
@@ -2264,11 +2264,11 @@ export function AppShell() {
 
 /**
  * Initial sidebar open state — open on desktop, closed on mobile. SSR-
- * safe (returns false when window is undefined). The threshold (`md`)
- * matches Tailwind's default 768px, used in the Sidebar's responsive
+ * safe (returns false when window is undefined). The threshold (`lg`)
+ * is LunaOS Control's 1024px desktop boundary, used in the Sidebar's responsive
  * classes.
  */
 function initialSidebarOpen(): boolean {
   if (typeof window === "undefined") return false;
-  return window.matchMedia("(min-width: 768px)").matches;
+  return window.matchMedia("(min-width: 1024px)").matches;
 }

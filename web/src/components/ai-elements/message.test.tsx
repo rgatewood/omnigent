@@ -26,7 +26,12 @@ describe("MessageContent", () => {
     render(<MessageContent>Message text</MessageContent>);
 
     const content = screen.getByText("Message text");
-    expect(content).toHaveClass("text-ui", "group-[.is-user]:px-3", "group-[.is-user]:py-2");
+    expect(content).toHaveClass(
+      "text-ui",
+      "overflow-x-hidden",
+      "group-[.is-user]:px-3",
+      "group-[.is-user]:py-2",
+    );
     expect(content).not.toHaveClass("text-[0.8125rem]", "leading-[1.125rem]");
     expect(content).not.toHaveClass("group-[.is-user]:px-4", "group-[.is-user]:py-3");
   });
@@ -36,7 +41,7 @@ describe("Message", () => {
   it("keeps the message shrinkable", () => {
     render(<Message data-testid="message" from="assistant" />);
 
-    expect(screen.getByTestId("message")).toHaveClass("min-w-0");
+    expect(screen.getByTestId("message")).toHaveClass("min-w-0", "overflow-x-hidden");
   });
 
   it("keeps a caller's width override alongside min-w-0", () => {
