@@ -26,11 +26,12 @@ from omnigent.inner.codex_executor import (
     _databricks_codex_config_overrides,
     _dynamic_tool_result_payload,
     _goal_objective_from_content,
+    _lunaos_agent_package,
     _parse_codex_gateway_error,
     _prompt_for_turn,
     _provider_codex_config_overrides,
     _to_codex_input_items,
-    _windows_admin_lunaos_home,
+    _windows_lunaos_home,
 )
 from omnigent.inner.executor import (
     ExecutorError,
@@ -44,18 +45,32 @@ from omnigent.inner.executor import (
 from omnigent.model_fallbacks import CODEX_DEFAULT_MODEL
 
 
-def test_windows_admin_lunaos_home_stays_inside_admin_package(monkeypatch, tmp_path):
+def test_windows_lunaos_home_uses_registered_source(monkeypatch, tmp_path):
     winreg = pytest.importorskip("winreg")
-    admin = tmp_path / "LunaOS" / "state" / "agents" / "admin"
-    admin.mkdir(parents=True)
     source = tmp_path / "source"
     (source / "src" / "lunaos").mkdir(parents=True)
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
     monkeypatch.setattr(winreg, "OpenKey", lambda *args: contextlib.nullcontext())
     monkeypatch.setattr(winreg, "QueryValueEx", lambda *args: (str(source), winreg.REG_SZ))
 
-    assert _windows_admin_lunaos_home(str(admin / "output")) == str(source)
-    assert _windows_admin_lunaos_home(str(admin.with_name("cos"))) is None
+    assert _windows_lunaos_home() == str(source)
+
+
+def test_lunaos_bundle_selects_only_an_installed_package(monkeypatch, tmp_path):
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
+    package = tmp_path / "LunaOS" / "state" / "agents" / "cos"
+    package.mkdir(parents=True)
+    (package / "bindings.json").write_text("{}", encoding="utf-8")
+    marker = tmp_path / "lunaos-binding.json"
+    marker.write_text(
+        json.dumps({"state_key": "cos", "agent_package": str(package)}), encoding="utf-8"
+    )
+    assert _lunaos_agent_package(tmp_path) == package
+    marker.write_text(
+        json.dumps({"state_key": "cos", "agent_package": str(tmp_path / "cos")}), encoding="utf-8"
+    )
+    with pytest.raises(ValueError, match="unavailable"):
+        _lunaos_agent_package(tmp_path)
 
 
 def _run(coro):

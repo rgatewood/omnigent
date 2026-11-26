@@ -522,13 +522,34 @@ def _clean_codex_env(extra_allow: Iterable[str] = ()) -> dict[str, str]:
     )
 
 
-def _windows_admin_lunaos_home(cwd: str | None) -> str | None:
-    """Recover the opted-in Admin hook's non-secret source directory on Windows."""
-    if sys.platform != "win32" or not cwd:
+def _lunaos_agent_package(bundle_dir: Path | None) -> Path | None:
+    """Get the installed identity from the registered agent bundle."""
+    if bundle_dir is None:
         return None
+    marker = bundle_dir / "lunaos-binding.json"
+    if not marker.is_file():
+        return None
+    try:
+        metadata = json.loads(marker.read_text(encoding="utf-8"))
+        key = metadata["state_key"]
+        package = Path(metadata["agent_package"]).resolve()
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        raise ValueError("Invalid LunaOS agent bundle binding.") from exc
     local_data = Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData" / "Local")
-    admin = (local_data / "LunaOS" / "state" / "agents" / "admin").resolve()
-    if not Path(cwd).resolve().is_relative_to(admin):
+    installed = (local_data / "LunaOS" / "state" / "agents").resolve()
+    if (
+        not isinstance(key, str)
+        or package.parent != installed
+        or package.name != key
+        or not (package / "bindings.json").is_file()
+    ):
+        raise ValueError("The LunaOS agent package is unavailable on this host.")
+    return package
+
+
+def _windows_lunaos_home() -> str | None:
+    """Recover the registered LunaOS source if the host env predates install."""
+    if sys.platform != "win32":
         return None
 
     import winreg
@@ -3500,11 +3521,27 @@ class CodexExecutor(Executor):
         self._codex_path = resolved_codex
         passthrough = declared_passthrough(self._os_env_spec)
         self._env = _clean_codex_env(passthrough)
+        if "LUNAOS_AGENT_PACKAGE" in passthrough:
+            self._env.pop("LUNAOS_AGENT_PACKAGE", None)
+            package = _lunaos_agent_package(bundle_dir)
+            if package is None:
+                raise ValueError("The LunaOS agent bundle has no registered package.")
+            self._env["LUNAOS_AGENT_PACKAGE"] = str(package)
         if "LUNAOS_HOME" in passthrough and not self._env.get("LUNAOS_HOME"):
+            # Older Admin registrations declared only LUNAOS_HOME.
             workspace = cwd or (os_env.cwd if os_env else None)
-            lunaos_home = _windows_admin_lunaos_home(workspace)
-            if lunaos_home is not None:
-                self._env["LUNAOS_HOME"] = lunaos_home
+            local_data = Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData" / "Local")
+            admin = (local_data / "LunaOS" / "state" / "agents" / "admin").resolve()
+            if "LUNAOS_AGENT_PACKAGE" in self._env or (
+                workspace and Path(workspace).resolve().is_relative_to(admin)
+            ):
+                lunaos_home = _windows_lunaos_home()
+                if lunaos_home is not None:
+                    self._env["LUNAOS_HOME"] = lunaos_home
+        if "LUNAOS_AGENT_PACKAGE" in self._env:
+            source_home = self._env.get("LUNAOS_HOME", "")
+            if not source_home or not (Path(source_home) / "src" / "lunaos").is_dir():
+                raise ValueError("The LunaOS source directory is unavailable on this host.")
         # Retry policy → OpenAI SDK env vars (Codex uses the OpenAI
         # SDK internally). Speculative — empirical audit pending.
         self._retry_policy = retry_policy if retry_policy is not None else RetryPolicy()

@@ -1308,6 +1308,11 @@ async def _resolve_agent_spec_from_server(
         dest.mkdir(parents=True)
         load(resp.content, dest=dest, expand_env=expand_env, prune_invalid_sub_agents=True)
     spec = load(dest, expand_env=expand_env, prune_invalid_sub_agents=True)
+    if not expand_env:
+        from omnigent.inner.agent_env import declared_passthrough
+
+        if "LUNAOS_AGENT_PACKAGE" in declared_passthrough(spec.os_env):
+            raise ValueError("LunaOS identity packages require an operator-registered agent.")
     return ResolvedSpec(spec=spec, workdir=dest)
 
 
