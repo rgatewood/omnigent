@@ -522,6 +522,30 @@ def _clean_codex_env(extra_allow: Iterable[str] = ()) -> dict[str, str]:
     )
 
 
+def _windows_admin_lunaos_home(cwd: str | None) -> str | None:
+    """Recover the opted-in Admin hook's non-secret source directory on Windows."""
+    if sys.platform != "win32" or not cwd:
+        return None
+    local_data = Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData" / "Local")
+    admin = (local_data / "LunaOS" / "state" / "agents" / "admin").resolve()
+    if not Path(cwd).resolve().is_relative_to(admin):
+        return None
+
+    import winreg
+
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment") as key:
+            value, _ = winreg.QueryValueEx(key, "LUNAOS_HOME")
+    except OSError:
+        return None
+    if not isinstance(value, str) or not value.strip():
+        return None
+    path = Path(os.path.expandvars(value)).resolve()
+    if (path / "src" / "lunaos").is_dir():
+        return str(path)
+    return None
+
+
 def codex_skill_sources(bundle_dir: Path | None, home: Path) -> list[Path]:
     """
     Build the ordered Codex skill-source list: bundle skills, then host skills.
@@ -3474,7 +3498,13 @@ class CodexExecutor(Executor):
                 f"nvm-managed bin dir), set {_CODEX_PATH_ENV}=/path/to/codex."
             )
         self._codex_path = resolved_codex
-        self._env = _clean_codex_env(declared_passthrough(self._os_env_spec))
+        passthrough = declared_passthrough(self._os_env_spec)
+        self._env = _clean_codex_env(passthrough)
+        if "LUNAOS_HOME" in passthrough and not self._env.get("LUNAOS_HOME"):
+            workspace = cwd or (os_env.cwd if os_env else None)
+            lunaos_home = _windows_admin_lunaos_home(workspace)
+            if lunaos_home is not None:
+                self._env["LUNAOS_HOME"] = lunaos_home
         # Retry policy → OpenAI SDK env vars (Codex uses the OpenAI
         # SDK internally). Speculative — empirical audit pending.
         self._retry_policy = retry_policy if retry_policy is not None else RetryPolicy()

@@ -30,6 +30,7 @@ from omnigent.inner.codex_executor import (
     _prompt_for_turn,
     _provider_codex_config_overrides,
     _to_codex_input_items,
+    _windows_admin_lunaos_home,
 )
 from omnigent.inner.executor import (
     ExecutorError,
@@ -41,6 +42,20 @@ from omnigent.inner.executor import (
     TurnComplete,
 )
 from omnigent.model_fallbacks import CODEX_DEFAULT_MODEL
+
+
+def test_windows_admin_lunaos_home_stays_inside_admin_package(monkeypatch, tmp_path):
+    winreg = pytest.importorskip("winreg")
+    admin = tmp_path / "LunaOS" / "state" / "agents" / "admin"
+    admin.mkdir(parents=True)
+    source = tmp_path / "source"
+    (source / "src" / "lunaos").mkdir(parents=True)
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
+    monkeypatch.setattr(winreg, "OpenKey", lambda *args: contextlib.nullcontext())
+    monkeypatch.setattr(winreg, "QueryValueEx", lambda *args: (str(source), winreg.REG_SZ))
+
+    assert _windows_admin_lunaos_home(str(admin / "output")) == str(source)
+    assert _windows_admin_lunaos_home(str(admin.with_name("cos"))) is None
 
 
 def _run(coro):
